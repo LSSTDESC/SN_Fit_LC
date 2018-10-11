@@ -1,7 +1,0 @@
-import sncosmo
-import numpy as np
-
-class Fit:
-    def __init__(self,lc):
-        print('hello',lc.meta)
-    
