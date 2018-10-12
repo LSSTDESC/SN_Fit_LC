@@ -22,6 +22,9 @@ class Fit_LC:
         
     def __call__(self,lc):
 
+        if lc is None:
+            return None, None
+        
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
         res_params_values = np.zeros((5,), dtype=float)
         vparam_names = ['t0', 'x0', 'x1', 'c']
@@ -29,10 +32,12 @@ class Fit_LC:
         mbfit = -1
         z = -1
         fitstatus = 'nofit'
+        meta = None
         if lc is not None:
-            z = lc.meta['z']
+            meta = lc.meta
+            z = meta['z']
             self.SN_fit_model.set(z=z)
-
+        
             select=lc[np.where(np.logical_and(lc['flux']/lc['fluxerr']>5.,lc['flux']>0.))]
             select = select[['flux','fluxerr','band','zp','zpsys','time']]
         
@@ -51,7 +56,7 @@ class Fit_LC:
             else:
                 fitstatus = 'nodat'
                 
-        resa = self._transform(lc.meta,res_param_names, list(res_params_values), vparam_names,covariance,mbfit,fitstatus)
+        resa = self._transform(meta,res_param_names, list(res_params_values), vparam_names,covariance,mbfit,fitstatus)
         resb = self._get_infos(z,res_params_values[res_param_names.index('t0')],select)
 
         if self.display and len(select) >= 5:
@@ -78,7 +83,7 @@ class Fit_LC:
                     res['Cov_'+name+nameb] = covmat[i,j]
                     
         res['mbfit'] = mbfit
-        res['fitstatus'] = fitstatus
+        res['fitstatus'] = np.string_(fitstatus)
         return res
 
     def _get_infos(self, z, T0, lc):

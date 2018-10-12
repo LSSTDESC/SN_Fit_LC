@@ -16,20 +16,22 @@ def Multiproc(simu_name='', lc_name='',Fit=None,nproc=1):
     for i, key in enumerate(f.keys()):
         simu = Table.read(simu_name, path=key)
 
+    nref = 2000
     nlc = len(simu)
     print('total number of LC',nlc)
     #nlc = 32
     batch = range(0,nlc,nproc)
     batch = np.append(batch,nlc)
-    
+    print(batch)
     names = None
     val =[]
+    inum = -1
     for i in range(len(batch)-1):
         result_queue = multiprocessing.Queue()
         
         ida = batch[i]
         idb = batch[i+1]
-        if ida > 0 and (ida%1000) == 0:
+        if ida > 0 and (ida%nref) == 0:
             print('Running',ida)
         for j in range(ida,idb):
             simul = simu[j]
@@ -48,10 +50,18 @@ def Multiproc(simu_name='', lc_name='',Fit=None,nproc=1):
             p.join()
 
         for j in range(ida,idb):
-            names = resultdict[j][0]
-            val.append(tuple(resultdict[j][1]))
-            
-    Fit.Finish(names,val)
+            if resultdict[j][0] is not None and resultdict[j][1] is not None:
+                names = resultdict[j][0]
+                val.append(tuple(resultdict[j][1]))
+        if ida > 0 and (ida%nref) == 0:
+            inum+=1
+            Fit.Dump(names,val,inum)
+            names = ' '
+            val = []
+
+    if len(val) > 0:
+        inum +=1
+        Fit.Dump(names,val,inum)
 
 class Fit_All:
     def __init__(self,telescope,output_config,display_lc,fitter_config,prodid):
@@ -69,7 +79,10 @@ class Fit_All:
         names,val = self.fitter(lc)
 
         if output_q is not None:
-            output_q.put({j : (list(names),list(val))})
+            if names is not None and val is not None:
+                output_q.put({j : (list(names),list(val))})
+            else:
+                output_q.put({j : (names,val)})
             
     def _prepare_Save(self, outdir, prodid):
 
@@ -81,10 +94,12 @@ class Fit_All:
         if os.path.exists(self.fit_out):
             os.remove(self.fit_out)
             
-    def Finish(self,names,val):
+    def Dump(self,names,val,inum):
         
         # dump the results in a hdf5 file
-        Table(rows = val, names=names).write(self.fit_out, 'fit_lc', compression=True)
+        #res = Table(np.rec.fromrecords(val,names = names))
+        Table(rows = val, names=names).write(
+            self.fit_out, 'fit_lc_'+str(inum), append=True,compression=True)
         
         
 parser = argparse.ArgumentParser(
