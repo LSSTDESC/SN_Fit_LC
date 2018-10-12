@@ -17,3 +17,5 @@ Display : False  #display during LC fit
 Output:
     directory: Output_Fit/colossus_2665/WFD
     save: True
+Multiprocessing:
+    nproc: 4
