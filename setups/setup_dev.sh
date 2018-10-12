@@ -23,7 +23,7 @@ for lib in "${pack[@]}"
 		   echo $lib 'already installed -> updating PYTHONPATH'
 	       else
 		   echo $lib 'not installed -> installing with pip'
-		   if [ $lib -eq 'h5py' ]
+		   if [ $lib = "h5py" ]
 		   then
 		       pip install --prefix=${PWD} ${lib}==2.7.1
 		   else
