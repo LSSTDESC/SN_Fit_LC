@@ -18,4 +18,4 @@ Output:
     directory: Output_Fit/colossus_2665/WFD
     save: True
 Multiprocessing:
-    nproc: 1
+    nproc: 4

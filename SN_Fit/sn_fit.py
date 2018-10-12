@@ -18,7 +18,7 @@ def Multiproc(simu_name='', lc_name='',Fit=None,nproc=1):
 
     nlc = len(simu)
     print('total number of LC',nlc)
-    nlc = 32
+    #nlc = 32
     batch = range(0,nlc,nproc)
     batch = np.append(batch,nlc)
     
@@ -29,9 +29,13 @@ def Multiproc(simu_name='', lc_name='',Fit=None,nproc=1):
         
         ida = batch[i]
         idb = batch[i+1]
-    
+        if ida > 0 and (ida%1000) == 0:
+            print('Running',ida)
         for j in range(ida,idb):
-            lc =  Table.read(lc_name, path='lc_'+str(simu[ida]['id_hdf5']))
+            simul = simu[j]
+            lc = None
+            if simul['n_lc_points'] > 0:
+                lc =  Table.read(lc_name, path='lc_'+str(simul['id_hdf5']))
             p=multiprocessing.Process(name='Subprocess-'+str(j),target=Fit,args=(lc,j,result_queue))
             p.start()
 

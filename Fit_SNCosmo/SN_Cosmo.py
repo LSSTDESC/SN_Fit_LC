@@ -21,28 +21,37 @@ class Fit_LC:
         self.SN_fit_model=sncosmo.Model(source=source)
         
     def __call__(self,lc):
-        
-        z = lc.meta['z']
-        self.SN_fit_model.set(z=z)
 
-        select=lc[np.where(np.logical_and(lc['flux']/lc['fluxerr']>5.,lc['flux']>0.))]
-        select = select[['flux','fluxerr','band','zp','zpsys','time']]
-        
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
         res_params_values = np.zeros((5,), dtype=float)
         vparam_names = ['t0', 'x0', 'x1', 'c']
         covariance = np.zeros((4,4,), dtype=float)
         mbfit = -1
+        z = -1
+        fitstatus = 'nofit'
+        if lc is not None:
+            z = lc.meta['z']
+            self.SN_fit_model.set(z=z)
+
+            select=lc[np.where(np.logical_and(lc['flux']/lc['fluxerr']>5.,lc['flux']>0.))]
+            select = select[['flux','fluxerr','band','zp','zpsys','time']]
         
-        if len(select) >= 5:
-            res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model,['t0', 'x0', 'x1', 'c'],bounds={'z':(z-0.001, z+0.001)})
-            mbfit=fitted_model._source.peakmag('bessellb','vega')
-            res_param_names = res['param_names']
-            res_params_values = res['parameters']
-            vparam_names = res['vparam_names']
-            covariance = res['covariance']
-        
-        resa = self._transform(lc.meta,res_param_names, list(res_params_values), vparam_names,covariance,mbfit)
+            if len(select) >= 5:
+                try:
+                    
+                    res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model,['t0', 'x0', 'x1', 'c'],bounds={'z':(z-0.001, z+0.001)})
+                    mbfit=fitted_model._source.peakmag('bessellb','vega')
+                    res_param_names = res['param_names']
+                    res_params_values = res['parameters']
+                    vparam_names = res['vparam_names']
+                    covariance = res['covariance']
+                    fitstatus = 'fitok'
+                except (RuntimeError, TypeError, NameError):
+                    fitstatus = 'crash'
+            else:
+                fitstatus = 'nodat'
+                
+        resa = self._transform(lc.meta,res_param_names, list(res_params_values), vparam_names,covariance,mbfit,fitstatus)
         resb = self._get_infos(z,res_params_values[res_param_names.index('t0')],select)
 
         if self.display and len(select) >= 5:
@@ -54,7 +63,7 @@ class Fit_LC:
         
         return resa.keys(), resa.values()
     
-    def _transform(self,meta,par_names,params,vpar_names,covmat,mbfit):
+    def _transform(self,meta,par_names,params,vpar_names,covmat,mbfit,fitstatus):
         
         res = {}
         for key, value in meta.items(): 
@@ -69,6 +78,7 @@ class Fit_LC:
                     res['Cov_'+name+nameb] = covmat[i,j]
                     
         res['mbfit'] = mbfit
+        res['fitstatus'] = fitstatus
         return res
 
     def _get_infos(self, z, T0, lc):
