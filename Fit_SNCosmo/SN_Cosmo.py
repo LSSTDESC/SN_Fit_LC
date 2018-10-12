@@ -34,7 +34,7 @@ class Fit_LC:
         covariance = np.zeros((4,4,), dtype=float)
         mbfit = -1
         
-        if len(select) > 0:
+        if len(select) >= 5:
             res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model,['t0', 'x0', 'x1', 'c'],bounds={'z':(z-0.001, z+0.001)})
             mbfit=fitted_model._source.peakmag('bessellb','vega')
             res_param_names = res['param_names']
@@ -45,7 +45,7 @@ class Fit_LC:
         resa = self._transform(lc.meta,res_param_names, list(res_params_values), vparam_names,covariance,mbfit)
         resb = self._get_infos(z,res_params_values[res_param_names.index('t0')],select)
 
-        if self.display:
+        if self.display and len(select) >= 5:
             import pylab as plt
             sncosmo.plot_lc(select, model=fitted_model,color='r',pulls=False,errors=res.errors) 
             plt.show()

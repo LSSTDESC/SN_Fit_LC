@@ -13,7 +13,7 @@ Fitter:
     name : SN_Cosmo           # Simulator name: SN_Cosmo,SN_Sim,SN_Ana
     model : salt2-extended   # spectra model
     version : 1.0                     #version
-Display : True  #display during LC fit
+Display : False  #display during LC fit
 Output:
     directory: Output_Fit/colossus_2665/WFD
     save: True
