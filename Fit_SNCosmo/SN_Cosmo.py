@@ -41,24 +41,15 @@ class Fit_LC:
             res_params_values = res['parameters']
             vparam_names = res['vparam_names']
             covariance = res['covariance']
-            
-
-        #print(type(res),type(fitted_model))
-        #print('hello',res,type(res['param_names']),res['parameters'].shape,type(res['vparam_names']),res['covariance'].shape)
-        """
-        print('res',res)
-        print('fitted',fitted_model)
-        print('mbfit',mbfit)
-        """
         
+        resa = self._transform(lc.meta,res_param_names, list(res_params_values), vparam_names,covariance,mbfit)
+        resb = self._get_infos(z,res_params_values[res_param_names.index('t0')],select)
+
         if self.display:
             import pylab as plt
             sncosmo.plot_lc(select, model=fitted_model,color='r',pulls=False,errors=res.errors) 
             plt.show()
-
-        resa = self._transform(lc.meta,res_param_names, list(res_params_values), vparam_names,covariance,mbfit)
-        resb = self._get_infos(z,res_params_values[res_param_names.index('t0')],select)
-
+            
         resa.update(resb)
         
         return resa.keys(), resa.values()
@@ -89,14 +80,19 @@ class Fit_LC:
         for band in self.bands:
             res['N_bef_'+band] = 0
             res['N_aft_'+band] = 0
-            
+
+        res['N_bef_all'] = 0
+        res['N_aft_all'] = 0
+        
         if len(lc) == 0:
             return res
         
         phases = (lc['time']-T0)/(1.+z)
         res['phase_min'] = np.min(phases)
         res['phase_max'] = np.max(phases)
-        
+
+        nbef = 0
+        naft = 0
         for band in self.bands:
             idx = lc['band'] == 'LSST::'+band
             sel = lc[idx]
@@ -106,9 +102,12 @@ class Fit_LC:
                 selb = sel[idb]
                 res['N_bef_'+band] = len(sel)-len(selb)
                 res['N_aft_'+band] = len(selb)
-                
+                nbef +=  len(sel)-len(selb)
+                naft += len(selb)
             else:
                 res['N_bef_'+band] = 0
                 res['N_aft_'+band] = 0
-                
+        res['N_bef_all'] = nbef
+        res['N_aft_all'] = naft
+        
         return res
