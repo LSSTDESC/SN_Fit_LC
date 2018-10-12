@@ -15,7 +15,7 @@ export SALT2_DIR=${PWD}/SN_Utils/SALT2_Files
 declare -a pack=("h5py" "iminuit")
 
  thedir=${PWD}/lib/python3.6/site-packages/
-for lib in "${arr[@]}"
+for lib in "${pack[@]}"
 	   do	      
 	       echo $thedir
 	       if [ -d ${thedir}$lib ]
