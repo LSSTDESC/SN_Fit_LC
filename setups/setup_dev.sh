@@ -12,15 +12,24 @@ export SN_UTILS_DIR=${PWD}/SN_Utils
 export SALT2_DIR=${PWD}/SN_Utils/SALT2_Files
 
 #checking whether hdf5 is accessible localy or not
-lib='h5py'
-thedir=${PWD}/lib/python3.6/site-packages/
-echo $thedir
-if [ -d ${thedir}$lib ]
-then
-    echo $lib 'already installed -> updating PYTHONPATH'
-else
-    echo $lib 'not installed -> installing with pip'
-    pip install --prefix=${PWD} ${lib}==2.7.1
-fi
+declare -a pack=("h5py" "iminuit")
+
+ thedir=${PWD}/lib/python3.6/site-packages/
+for lib in "${arr[@]}"
+	   do	      
+	       echo $thedir
+	       if [ -d ${thedir}$lib ]
+	       then
+		   echo $lib 'already installed -> updating PYTHONPATH'
+	       else
+		   echo $lib 'not installed -> installing with pip'
+		   if [ $lib -eq 'h5py' ]
+		   then
+		       pip install --prefix=${PWD} ${lib}==2.7.1
+		   else
+		       pip install --prefix=${PWD} ${lib}
+		   fi
+	       fi
+done
 
 export PYTHONPATH=${thedir}:$PYTHONPATH
