@@ -95,7 +95,8 @@ class Fit_LC:
         for band in self.bands:
             res['N_bef_'+band] = 0
             res['N_aft_'+band] = 0
-
+            res['SNR_'+band] = 0.
+            
         res['N_bef_all'] = 0
         res['N_aft_all'] = 0
         
@@ -119,10 +120,22 @@ class Fit_LC:
                 res['N_aft_'+band] = len(selb)
                 nbef +=  len(sel)-len(selb)
                 naft += len(selb)
+                res['SNR_'+band] = self.Calc_SNR(sel)
             else:
                 res['N_bef_'+band] = 0
                 res['N_aft_'+band] = 0
+                res['SNR_'+band] = 0.
         res['N_bef_all'] = nbef
         res['N_aft_all'] = naft
         
         return res
+
+    def Calc_SNR(self,lc):
+        #print('hello SNR',lc.dtype)
+        idx = lc['flux']/lc['fluxerr'] > 5.
+        sel = lc[idx]
+
+        sum_flux = np.sum(sel['flux'])
+        rms_flux = np.sum(sel['fluxerr']**2)
+
+        return sum_flux/np.sqrt(rms_flux)
