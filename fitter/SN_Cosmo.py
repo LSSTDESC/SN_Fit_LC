@@ -19,7 +19,9 @@ class Fit_LC:
         dust = sncosmo.OD94Dust()
 
         self.SN_fit_model=sncosmo.Model(source=source)
-        
+        self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c'],['z', 't0', 'x0', 'x1', 'color']))
+
+
     def __call__(self,lc):
 
         if lc is None:
@@ -75,15 +77,15 @@ class Fit_LC:
             res[key]=value
 
         for i in range(len(par_names)):
-            res[par_names[i]+'_fit']=params[i]
+            res[self.parNames[par_names[i]]+'_fit']=params[i]
 
         for i, name in enumerate(vpar_names):
             for j, nameb in enumerate(vpar_names):
                 if j >= i:
-                    res['Cov_'+name+nameb] = covmat[i,j]
+                    res['Cov_'+self.parNames[name]+self.parNames[nameb]] = covmat[i,j]
                     
         res['mbfit'] = mbfit
-        res['fitstatus'] = np.string_(fitstatus)
+        res['fitstatus'] = fitstatus
         return res
 
     def _get_infos(self, z, T0, lc):
@@ -120,7 +122,7 @@ class Fit_LC:
                 res['N_aft_'+band] = len(selb)
                 nbef +=  len(sel)-len(selb)
                 naft += len(selb)
-                res['SNR_'+band] = self.Calc_SNR(sel)
+                res['SNR_'+band] = self._calcSNR(sel)
             else:
                 res['N_bef_'+band] = 0
                 res['N_aft_'+band] = 0
@@ -130,11 +132,11 @@ class Fit_LC:
         
         return res
 
-    def Calc_SNR(self,lc):
-        #print('hello SNR',lc.dtype)
-        idx = lc['flux']/lc['fluxerr'] > 5.
+    def _calcSNR(self,lc):
+        
+        idx = lc['flux']/lc['fluxerr'] > 0.
         sel = lc[idx]
-
+     
         sum_flux = np.sum(sel['flux'])
         rms_flux = np.sum(sel['fluxerr']**2)
 

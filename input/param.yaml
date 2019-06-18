@@ -1,4 +1,4 @@
-ProductionID: WFD_3
+ProductionID: alt_sched_1
 Instrument:
    name : LSST       #name of the telescope (internal)
    throughput_dir : LSST_THROUGHPUTS_BASELINE #dir of throughput
@@ -7,15 +7,15 @@ Instrument:
    atmos : True  #atmos
    aerosol : False  #aerosol
 Simulations: 
-   filename: Simu_WFD_3.hdf5   # Name of simulation  file
-   dirname : ../Output_Simu/colossus_2665/WFD       # dir of obs file
+   filename: Simu_alt_sched_1.hdf5   # Name of simulation  file
+   dirname : /sps/lsst/users/gris/Output_Simu_pipeline_test     # dir of obs file
 Fitter:
-    name : SN_Cosmo           # Simulator name: SN_Cosmo,SN_Sim,SN_Ana
+    name : fitter.SN_Cosmo           # Simulator name: SN_Cosmo,SN_Sim,SN_Ana
     model : salt2-extended   # spectra model
     version : 1.0                     #version
 Display : False  #display during LC fit
 Output:
-    directory: Output_Fit/colossus_2665/WFD
+    directory: /sps/lsst/users/gris/Output_Fit_test/
     save: True
 Multiprocessing:
-    nproc: 4
+    nproc: 1
