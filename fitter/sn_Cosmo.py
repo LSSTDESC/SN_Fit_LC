@@ -40,13 +40,14 @@ class Fit_LC:
             z = meta['z']
             self.SN_fit_model.set(z=z)
         
+            
             select=lc[np.where(np.logical_and(lc['flux']/lc['fluxerr']>5.,lc['flux']>0.))]
             select = select[['flux','fluxerr','band','zp','zpsys','time']]
-        
+            select = lc[['flux','fluxerr','band','zp','zpsys','time']]
             if len(select) >= 5:
                 try:
                     
-                    res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model,['t0', 'x0', 'x1', 'c'],bounds={'z':(z-0.001, z+0.001)})
+                    res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model,['t0', 'x0', 'x1', 'c'],bounds={'z':(z-0.001, z+0.001)},min_snr=0.)
                     mbfit=fitted_model._source.peakmag('bessellb','vega')
                     res_param_names = res['param_names']
                     res_params_values = res['parameters']
