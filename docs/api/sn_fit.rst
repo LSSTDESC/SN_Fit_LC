@@ -1,7 +1,7 @@
-sn\_fitter package
-==================
+sn\_fit package
+===============
 
-.. automodule:: sn_fitter
+.. automodule:: sn_fit
    :members:
    :undoc-members:
    :show-inheritance:
@@ -11,4 +11,4 @@ Submodules
 
 .. toctree::
 
-   sn_fitter.fit_sncosmo
+   sn_fit.sn_fit
