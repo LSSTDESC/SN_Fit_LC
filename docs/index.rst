@@ -11,7 +11,7 @@ Welcome to sn_fit_lc's documentation!
    :caption: Contents:
 
    sn_fit <api/sn_fit.sn_fit>
-   sn_Cosmo <api/sn_fitter.sn_Cosmo>
+   fit_sncosmo <api/sn_fitter.fit_sncosmo>
 
 
 Indices and tables
