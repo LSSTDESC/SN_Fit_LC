@@ -2,6 +2,7 @@ import sncosmo
 import numpy as np
 from astropy import (cosmology, units as u, constants as const)
 import pandas as pd
+from astropy.table import Table
 
 
 class Fit_LC:
@@ -124,7 +125,7 @@ class Fit_LC:
 
         resa.update(resb)
 
-        return resa.keys(), resa.values()
+        return Table(rows=[list(resa.values())], names=list(resa.keys()))
 
     def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus):
         """
