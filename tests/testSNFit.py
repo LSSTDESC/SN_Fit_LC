@@ -4,7 +4,7 @@ import unittest
 import lsst.utils.tests
 from sn_fitter.fit_sncosmo import Fit_LC
 from sn_tools.sn_telescope import Telescope
-from sn_fit.sn_fit import Fitting
+from sn_fit.process_fit import Fitting
 from sn_fit.mbcov import MbCov
 import os
 import h5py
