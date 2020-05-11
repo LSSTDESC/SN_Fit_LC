@@ -10,7 +10,8 @@ Welcome to sn_fit_lc's documentation!
    :maxdepth: 3
    :caption: Contents:
 
-   sn_fit <api/sn_fit.sn_fit>
+   process_fit <api/sn_fit.process_fit>
+   mbcov <api/sn_fit.mbcov>
    fit_sncosmo <api/sn_fitter.fit_sncosmo>
 
 

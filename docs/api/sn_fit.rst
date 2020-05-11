@@ -11,4 +11,5 @@ Submodules
 
 .. toctree::
 
-   sn_fit.sn_fit
+   sn_fit.mbcov
+   sn_fit.process_fit
