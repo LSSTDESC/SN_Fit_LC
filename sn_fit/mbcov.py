@@ -283,7 +283,7 @@ class MbCov:
             else:
                res['Cov_Colormb']=Prod[i,0]
             """
-        res['Cov_mbmb'] = np.asscalar(np.dot(Der.T, Prod))
+        res['Cov_mbmb'] = np.dot(Der.T, Prod).item()
         res['mb_recalc'] = self.mB(par_var).item()
 
         return res

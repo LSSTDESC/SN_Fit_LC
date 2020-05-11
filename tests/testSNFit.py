@@ -127,10 +127,12 @@ class TestSNFit(unittest.TestCase):
         prodid = 'sncosmo_Fake_Fake_DESC_seas_-1_-2.0_0.2.hdf5'
         simu_name = 'Simu_{}'.format(prodid)
         lc_name = 'LC_{}'.format(prodid)
+        mb_name = 'Ratint_for_mb.npy'
 
-        # get this file from server if necessary
+        # get these files from server if necessary
         getFile('unittests', simu_name)
         getFile('unittests', lc_name)
+        getFile('SALT2_Files', mb_name)
 
         # build configuration file
         conf = getconfig(prodid, simu_name, lc_name)
@@ -171,10 +173,12 @@ class TestSNFit(unittest.TestCase):
         for key in keychecks:
             assert(np.isclose(dictRef[key], res[key].tolist()).all())
 
+        """
         # cleaning directory
         for fi in [simu_name, lc_name]:
             if os.path.isfile(fi):
                 os.system('rm {}'.format(fi))
+        """
 
 
 fit_snfit = TestSNFit
