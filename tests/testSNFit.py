@@ -4,6 +4,7 @@ import unittest
 import lsst.utils.tests
 from sn_fitter.fit_sncosmo import Fit_LC
 from sn_tools.sn_telescope import Telescope
+from sn_fit.sn_fit import Fitting
 import os
 import h5py
 from astropy.table import Table, vstack
@@ -21,9 +22,44 @@ def getFile(refdir, fname):
         os.system(cmd)
 
 
+def getconfig(prodid, simu_name, lc_name, saveData=False):
+
+    conf = {}
+    conf['ProductionID'] = prodid
+
+    conf['Instrument'] = {}
+    conf['Instrument']['name'] = 'LSST'
+    conf['Instrument']['throughput_dir'] = 'LSST_THROUGHPUTS_BASELINE'
+    conf['Instrument']['atmos_dir'] = 'THROUGHPUTS_DIR'
+    conf['Instrument']['airmass'] = 1.1
+    conf['Instrument']['atmos'] = True
+    conf['Instrument']['aerosol'] = False
+
+    conf['Simulations'] = {}
+    conf['Simulations']['filename'] = simu_name
+    conf['Simulations']['dirname'] = '.'
+
+    conf['Fitter'] = {}
+    conf['Fitter']['name'] = 'sn_fitter.fit_sncosmo'
+    conf['Fitter']['model'] = 'salt2-extended'
+    conf['Fitter']['version'] = 1.0
+    conf['Fitter']['covmb'] = 0
+
+    conf['Display'] = 0
+
+    conf['Output'] = {}
+    conf['Output']['directory'] = '.'
+    conf['Output']['save'] = saveData
+
+    conf['Multiprocessing'] = {}
+    conf['Multiprocessing']['nproc'] = 1
+
+    return conf
+
+
 class TestSNFitcosmo(unittest.TestCase):
 
-    def testSNFit(self):
+    def testFit(self):
 
         # fit instance
         telescope = Telescope(airmass=1.2)
@@ -79,7 +115,70 @@ class TestSNFitcosmo(unittest.TestCase):
             os.system('rm {}'.format(simuLC))
 
 
-#fit_sncosmo = TestSNFitcosmo
+class TestSNFit(unittest.TestCase):
+    def testSNFit(self):
+
+        # get data
+        # two files requested:
+        # Simu_*: astropy table with a list of SN simulation parameters
+        # LC_*: astropy tables with LC
+
+        # grab LCs
+        prodid = 'sncosmo_Fake_Fake_DESC_seas_-1_-2.0_0.2.hdf5'
+        simu_name = 'Simu_{}'.format(prodid)
+        lc_name = 'LC_{}'.format(prodid)
+
+        # get this file from server if necessary
+        getFile('unittests', simu_name)
+        getFile('unittests', lc_name)
+
+        # build configuration file
+        conf = getconfig(prodid, simu_name, lc_name)
+
+        # fit instance
+        fit = Fitting(conf)
+
+        # getting the simu file
+        f = h5py.File(simu_name, 'r')
+        print(f.keys())
+        # reading the simu file
+        for i, key in enumerate(f.keys()):
+            simul = Table.read(simu_name, path=key)
+
+        res = Table()
+        for simu in simul:
+            lc = None
+            lc = Table.read(lc_name, path='lc_{}'.format(simu['id_hdf5']))
+            resfit = fit(lc)
+            res = vstack([res, resfit])
+
+        idx = res['z'] < 0.8
+        sel = res[idx]
+
+        keychecks = ['z', 'Cov_colorcolor']
+        """
+        for key in keychecks:
+            print('dictRef[\'{}\']='.format(key), res[key].tolist())
+        """
+
+        dictRef = {}
+        dictRef['z'] = [0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2, 0.22, 0.24, 0.26, 0.28, 0.3, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5, 0.52, 0.54,
+                        0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7000000000000001, 0.72, 0.74, 0.76, 0.78, 0.8, 0.8200000000000001, 0.84, 0.86, 0.88, 0.9, 0.92, 0.9400000000000001, 0.96, 0.98, 1.0]
+
+        dictRef['Cov_colorcolor'] = [5.0188024838012865e-09, 2.079459024964159e-08, 9.572515257546943e-08, 2.5579974791635596e-07, 5.381968114366316e-07, 7.84149720548657e-07, 1.2904117589079427e-06, 2.1835747872003875e-06, 3.4031247974842205e-06, 5.089387982701995e-06, 7.411367293053516e-06, 1.0440058224771452e-05, 1.4516057013468932e-05, 1.9820846580639528e-05, 5.4848824107982635e-05, 6.793756102580619e-05, 8.14878997971749e-05, 9.578321673721968e-05, 0.00011241858051157339, 0.00013313850190210713, 0.00015816525343875836, 0.00018953338140741282,
+                                     0.00023279260332887108, 0.0002926926540771169, 0.00036724081727145983, 0.0004502363398936092, 0.0005414746852036682, 0.0006552500455930502, 0.0007989447815061136, 0.0009701086108708995, 0.001167662290074013, 0.0013948261230415425, 0.005411630796879028, 0.006302585916700493, 0.007209322714217017, 0.008186441880889383, 0.009392125822218945, 0.010841303440276704, 0.012457675161195515, 0.014240225551167742, 0.01633751529759251, 0.018936075819973055, 0.02217601051431927, 0.02581103860697213, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+        for key in keychecks:
+            assert(np.isclose(dictRef[key], res[key].tolist()).all())
+
+        # cleaning directory
+        for fi in [simu_name, lc_name]:
+            if os.path.isfile(fi):
+                os.system('rm {}'.format(fi))
+
+
+fit_snfit = TestSNFit
+# fit_sncosmo = TestSNFitcosmo
 
 if __name__ == "__main__":
     lsst.utils.tests.init()
