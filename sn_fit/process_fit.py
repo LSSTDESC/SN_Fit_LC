@@ -11,7 +11,7 @@ class Fitting:
     class to perform fits 
 
     Parameters
-    --------------
+    ----------------
     fitter_config: dict
       dict of parameters
 
@@ -19,7 +19,7 @@ class Fitting:
 
     def __init__(self, fitter_config, covmb=None):
 
-         # load instrument
+        # load instrument
         tel_par = fitter_config['Instrument']
         telescope = Telescope(name=tel_par['name'],
                               throughput_dir=tel_par['throughput_dir'],
