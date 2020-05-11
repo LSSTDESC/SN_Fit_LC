@@ -7,6 +7,7 @@ class MbCov:
     def __init__(self, salt2Dir, paramNames=dict(zip(['x0', 'x1', 'color'], ['x0', 'x1', 'color'])), interp=True):
         """
         Class to estimate covariance matrix with mb
+
         Parameters
         ----------
         salt2Dir : str

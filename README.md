@@ -22,3 +22,50 @@ This is open source software, available for re-use under the modified BSD licens
 Copyright (c) 2020, the sn_fit_lc contributors on GitHub, https://github.com/LSSTDESC/sn_fit_lc/graphs/contributors.
 All rights reserved.
 ```
+
+## Content of sn_fit_lc ##
+* **docs**: documentation for sphinx
+* **\_\_init\_\_.py**
+* **input**
+* **LICENCE**: licence file
+* **README.md**: this readme
+* **requirements.txt**: required packages (pip installation) 
+* **setup.py**: setup file for pip installation
+* [**sn_fit**](doc_package/sn_fit.md): set of scripts to run to fit light curves
+* [**sn_fitter**](doc_package/sn_fitter.md): set of fitter to fit the light curves
+* **tests**: unit tests
+
+
+
+## Complete tree ##
+```bash
+├── docs
+│   ├── api
+│   │   ├── sn_fit.mbcov.rst
+│   │   ├── sn_fit.process_fit.rst
+│   │   ├── sn_fit.rst
+│   │   ├── sn_fitter.fit_sncosmo.rst
+│   │   └── sn_fitter.rst
+│   ├── conf.py
+│   ├── index.rst
+│   ├── make.bat
+│   ├── Makefile
+│   ├── _static
+│   └── _templates
+├── __init__.py
+├── input
+│   └── param.yaml
+├── LICENCE
+├── README.md
+├── requirements.txt
+├── setup.py
+├── sn_fit
+│   ├── __init__.py
+│   ├── mbcov.py
+│   ├── process_fit.py
+├── sn_fitter
+│   ├── fit_sncosmo.py
+│   ├── __init__.py
+└── tests
+    └── testSNFit.py
+ ```bash
