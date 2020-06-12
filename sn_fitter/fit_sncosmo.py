@@ -99,12 +99,16 @@ class Fit_LC:
                     res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model, [
                         't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.001, z+0.001)}, minsnr=0.0)
                     # get parameters
-                    mbfit = fitted_model._source.peakmag('bessellb', 'vega')
-                    res_param_names = res['param_names']
-                    res_params_values = res['parameters']
-                    vparam_names = res['vparam_names']
-                    covariance = res['covariance']
-                    fitstatus = 'fitok'
+                    if res['success']:
+                        mbfit = fitted_model._source.peakmag(
+                            'bessellb', 'vega')
+                        res_param_names = res['param_names']
+                        res_params_values = res['parameters']
+                        vparam_names = res['vparam_names']
+                        covariance = res['covariance']
+                        fitstatus = 'fitok'
+                    else:
+                        fitstatus = 'badfit'
                 except (RuntimeError, TypeError, NameError):
                     fitstatus = 'crash'
             else:
@@ -165,11 +169,15 @@ class Fit_LC:
         for i in range(len(par_names)):
             res[self.parNames[par_names[i]]+'_fit'] = params[i]
 
-        for i, name in enumerate(vpar_names):
-            for j, nameb in enumerate(vpar_names):
-                if j >= i:
-                    res['Cov_'+self.parNames[name] +
-                        self.parNames[nameb]] = covmat[i, j]
+            for i, name in enumerate(vpar_names):
+                for j, nameb in enumerate(vpar_names):
+                    if j >= i:
+                        if covmat is not None:
+                            res['Cov_'+self.parNames[name] +
+                                self.parNames[nameb]] = covmat[i, j]
+                        else:
+                            res['Cov_'+self.parNames[name] +
+                                self.parNames[nameb]] = 0.
 
         res['mbfit'] = mbfit
         res['fitstatus'] = fitstatus
