@@ -116,7 +116,7 @@ class Fit_LC:
                    'Cov_t0color', 'Cov_x0x1', 'Cov_x0color',  'Cov_x1color']:
             res[vv] = -99.
         for vv in ['Cov_t0t0', 'Cov_x0x0', 'Cov_x1x1',  'Cov_colorcolor']:
-            res[vv] = snres[vv]
+            res[vv] = snres[vv].data.item()
 
         for key, value in meta.items():
             res[key] = value
