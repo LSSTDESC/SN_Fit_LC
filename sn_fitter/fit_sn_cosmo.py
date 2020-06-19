@@ -87,12 +87,16 @@ class Fit_LC:
 
             # LC points selection: make sure enough points with minimal snr
 
-            selecta = lc[np.where(np.logical_and(
-                lc['flux']/lc['fluxerr'] > 5., lc['flux'] > 0.))]
-            selecta = selecta[['flux', 'fluxerr',
-                               'band', 'zp', 'zpsys', 'time']]
+            idx = lc['flux'] > 0.
+            idx &= lc['fluxerr'] > 0.
+
+            selecta = lc[idx]
+            idx = selecta['flux']/selecta['fluxerr'] > 5.
+            selecta = selecta[idx][['flux', 'fluxerr',
+                                    'band', 'zp', 'zpsys', 'time']]
             select = lc[['flux', 'fluxerr', 'band', 'zp', 'zpsys', 'time']]
             select = select[select['flux'] > 0.]
+            #print('Selection', len(selecta))
             if len(selecta) >= 5:
                 try:
                     # fit here
