@@ -14,6 +14,6 @@ setup(
     zip_safe=False,
     install_requires=[
         'sn_tools>=0.1',
-        'sn_stackers>=0.1'
+        'iminuit>=1.4'
     ],
 )
