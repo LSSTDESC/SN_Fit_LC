@@ -2,7 +2,7 @@ from builtins import zip
 import numpy as np
 import unittest
 import lsst.utils.tests
-from sn_fitter.fit_sncosmo import Fit_LC
+from sn_fitter.fit_sn_cosmo import Fit_LC
 from sn_tools.sn_telescope import Telescope
 from sn_fit.process_fit import Fitting
 from sn_fit.mbcov import MbCov
@@ -10,7 +10,7 @@ import os
 import h5py
 from astropy.table import Table, vstack
 
-main_repo = 'https://me.lsst.eu/gris/Reference_Files'
+main_repo = 'https://me.lsst.eu/gris/DESC_SN_pipeline'
 
 
 def getFile(refdir, fname):
@@ -51,7 +51,7 @@ def getconfig(prodid, simu_name, lc_name, saveData=False):
     conf['Simulations']['dirname'] = '.'
 
     conf['Fitter'] = {}
-    conf['Fitter']['name'] = 'sn_fitter.fit_sncosmo'
+    conf['Fitter']['name'] = 'sn_fitter.fit_sn_cosmo'
     conf['Fitter']['model'] = 'salt2-extended'
     conf['Fitter']['version'] = 1.0
     conf['Fitter']['covmb'] = 1
