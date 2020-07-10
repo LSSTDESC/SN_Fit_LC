@@ -11,4 +11,5 @@ Submodules
 
 .. toctree::
 
-   sn_fitter.fit_sncosmo
+   sn_fitter.fit_sn_cosmo
+   sn_fitter.fit_sn_fast

@@ -12,8 +12,9 @@ Welcome to sn_fit_lc's documentation!
 
    process_fit <api/sn_fit.process_fit>
    mbcov <api/sn_fit.mbcov>
-   fit_sncosmo <api/sn_fitter.fit_sncosmo>
-
+   fit_sn_cosmo <api/sn_fitter.fit_sn_cosmo>
+   fit_sn_fast <api/sn_fitter.fit_sn_fast>
+   
 
 Indices and tables
 ==================
