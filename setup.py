@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='sn_fit_lc',
-    version='0.1',
+    version='v1.0.0',
     description='Light curve fitting for supernovae',
     url='http://github.com/lsstdesc/sn_fit_lc',
     author='Philippe Gris',
