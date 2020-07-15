@@ -1,9 +1,13 @@
 from setuptools import setup
+# get the version here
+pkg_vars  = {}
 
+with open("version.py") as fp:
+    exec(fp.read(), pkg_vars)
 
 setup(
     name='sn_fit_lc',
-    version=__version__,
+    version=pkg_vars['__version__'],
     description='Light curve fitting for supernovae',
     url='http://github.com/lsstdesc/sn_fit_lc',
     author='Philippe Gris',
