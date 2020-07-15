@@ -34,38 +34,45 @@ All rights reserved.
 * [**sn_fit**](doc_package/sn_fit.md): set of scripts to run to fit light curves
 * [**sn_fitter**](doc_package/sn_fitter.md): set of fitter to fit the light curves
 * **tests**: unit tests
-
+* **version.py**: package version
 
 
 ## Complete tree ##
 ```bash
-├── docs
-│   ├── api
-│   │   ├── sn_fit.mbcov.rst
-│   │   ├── sn_fit.process_fit.rst
-│   │   ├── sn_fit.rst
-│   │   ├── sn_fitter.fit_sncosmo.rst
-│   │   └── sn_fitter.rst
-│   ├── conf.py
-│   ├── index.rst
-│   ├── make.bat
-│   ├── Makefile
-│   ├── _static
-│   └── _templates
-├── __init__.py
-├── input
-│   └── param.yaml
-├── LICENCE
-├── README.md
-├── requirements.txt
-├── setup.py
-├── sn_fit
-│   ├── __init__.py
-│   ├── mbcov.py
-│   ├── process_fit.py
-├── sn_fitter
-│   ├── fit_sncosmo.py
-│   ├── __init__.py
-└── tests
-    └── testSNFit.py
+|-- LICENCE
+|-- README.md
+|-- __init__.py
+|-- doc_package
+|   |-- sn_fit.md
+|   |-- sn_fitter.md
+|-- docs
+|   |-- Makefile
+|   |-- api
+|   |   |-- sn_fit.mbcov.rst
+|   |   |-- sn_fit.process_fit.rst
+|   |   |-- sn_fit.rst
+|   |   |-- sn_fitter.fit_sn_cosmo.rst
+|   |   |-- sn_fitter.fit_sn_fast.rst
+|   |   |-- sn_fitter.fit_sncosmo.rst
+|   |   |-- sn_fitter.rst
+|   |-- conf.py
+|   |-- index.rst
+|   |-- make.bat
+|-- input
+|   |-- param.yaml
+|-- requirements.txt
+|-- setup.py
+|-- sn_fit
+|   |-- __init__.py
+|   |-- mbcov.py
+|   |-- process_fit.py
+|   |-- version.py
+|-- sn_fitter
+|   |-- __init__.py
+|   |-- fit_sn_cosmo.py
+|   `-- fit_sn_fast.py
+|-- tests
+|   |-- testSNFit.py
+|-- version.py
+
  ```bash
