@@ -10,7 +10,9 @@ We welcome requests to access code for non-DESC use; if you wish to use the code
 ```
 ## Release Status
 
-This code is under development and has not yet been released.
+|Release|Date|Packages|
+|---|---|---|
+|v1.0.0|2020/07/15|sn_fit_v1.0.0,sn_fitter_v1.0.0|
 
 ## Feedback, License etc
 
