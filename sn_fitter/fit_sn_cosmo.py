@@ -101,7 +101,7 @@ class Fit_LC:
                 try:
                     # fit here
                     res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model, [
-                        't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.001, z+0.001)}, minsnr=0.0)
+                        't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.001, z+0.001)}, minsnr=5.0)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
