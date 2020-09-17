@@ -31,13 +31,17 @@ class Fitting:
         self.mbcalc = fitter_config['Fitter']['covmb']
         self.covmb = covmb
         display_lc = fitter_config['Display']
+        LC_sel = fitter_config['LC_selection']
 
         module = import_module(fitter_config['Fitter']['name'])
         # fit instance
         self.fitter = module.Fit_LC(
             model=fitter_config['Fitter']['model'],
             version=fitter_config['Fitter']['version'],
-            telescope=telescope, display=display_lc)
+            telescope=telescope, display=display_lc,
+            snrmin=LC_sel['snrmin'],
+            nbef=LC_sel['nbef'],
+            naft=LC_sel['naft'])
 
         if fitter_config['Output']['save']:
             self.prepareSave(

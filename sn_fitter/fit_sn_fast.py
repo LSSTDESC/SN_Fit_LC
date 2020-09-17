@@ -22,14 +22,21 @@ class Fit_LC:
       to display the fit online (default: False)
     bands: str, opt
       bands to consider (default: ugrizy)
-
+    snrmin: float, opt
+      min SNR for considered LC points for the fit (default: 5)
+    nbef: int, opt
+      minimal number of LC points before max (default: 4)
+    naft: int, opt
+      minimal number of LC points after max (default: 5) 
     """
 
-    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy'):
+    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5):
 
         self.display = display
         self.bands = bands
-
+        self.snrmin = snrmin
+        self.nbef = nbef
+        self.naft = naft
         # name parameters
         self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c'], [
                              'z', 't0', 'x0', 'x1', 'color']))
@@ -56,15 +63,29 @@ class Fit_LC:
 
         # for this light curve, estimate SN parameter errors from Fisher values
 
-        selecta = lc[np.where(np.logical_and(
-            lc['flux']/lc['fluxerr'] > 5., lc['flux'] > 0.))]
+        idx = lc['flux'] > 0.
+        idx = lc['flux']/lc['fluxerr'] > self.snrmin
+
+        selecta = lc[idx]
+        selecta['diff_time'] = selecta.meta['daymax']-selecta['time']
+        nlc_bef = len(selecta[selecta['diff_time']>=0])
+        nlc_aft = len(selecta[selecta['diff_time']<0])
+
+        # check the total number of LC points here
+        assert((nlc_bef+nlc_aft)==len(selecta))
+        
         selecta = selecta[['flux', 'fluxerr',
                            'band', 'zp', 'zpsys', 'time']]
 
-        sn = CalcSN(lc, nBef=0, nAft=0,
+        #if len(lc[idx])<=5:
+        if nlc_bef < self.nbef or nlc_aft < self.naft:
+            return Table()
+        
+        sn = CalcSN(lc[idx], nBef=0, nAft=0,
                     nPhamin=0, nPhamax=0,
                     params=['x0', 'x1', 'daymax', 'color'])
 
+        
         # Make a dict of the fitted result (plus metadata)
         meta = lc.meta
         resa = self._transform(meta, sn.sn, sn.fitstatus)

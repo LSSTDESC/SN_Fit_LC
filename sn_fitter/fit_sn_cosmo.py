@@ -21,14 +21,23 @@ class Fit_LC:
       to display the fit online (default: False)
     bands: str, opt
       bands to consider (default: ugrizy)
-
+    snrmin: float, opt
+      min SNR for considered LC points for the fit (default: 5)
+    nbef: int, opt
+      minimal number of LC points before max (default: 4)
+    naft: int, opt
+      minimal number of LC points after max (default: 5) 
+    
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy'):
+    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5):
 
         self.display = display
         self.bands = bands
-
+        self.snrmin = snrmin
+        self.nbef = nbef
+        self.naft = naft
+        
         # get the bands for sncosmo registration - with and without airmass
 
         for band in bands:
@@ -90,18 +99,30 @@ class Fit_LC:
             idx = lc['flux'] > 0.
             idx &= lc['fluxerr'] > 0.
 
+            """
             selecta = lc[idx]
-            idx = selecta['flux']/selecta['fluxerr'] > 5.
+            idx = selecta['flux']/selecta['fluxerr'] >= snr_min
             selecta = selecta[idx][['flux', 'fluxerr',
                                     'band', 'zp', 'zpsys', 'time']]
-            select = lc[['flux', 'fluxerr', 'band', 'zp', 'zpsys', 'time']]
-            select = select[select['flux'] > 0.]
+            """
+            
+            
+            select = lc[idx]
+            idx = select['flux']/select['fluxerr'] >=self.snrmin
+            select = select[idx]
+            select['diff_time'] = select.meta['daymax']-select['time']
+            nlc_bef = len(select[select['diff_time']>=0])
+            nlc_aft = len(select[select['diff_time']<0])
+            # check the total number of LC points here
+            assert((nlc_bef+nlc_aft)==len(select))
+            select = select[['flux', 'fluxerr', 'band', 'zp', 'zpsys', 'time']]
             #print('Selection', len(selecta))
-            if len(selecta) >= 5:
+            #if len(select) >= 5:
+            if nlc_bef >= self.nbef and nlc_aft >= self.naft:
                 try:
                     # fit here
                     res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model, [
-                        't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.001, z+0.001)}, minsnr=5.0)
+                        't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.001, z+0.001)}, minsnr=0.0)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
@@ -126,6 +147,7 @@ class Fit_LC:
             z, res_params_values[res_param_names.index('t0')], select)
 
         if self.display and len(select) >= 5:
+            print(select['band','time','flux','fluxerr'])
             import pylab as plt
             sncosmo.plot_lc(select, model=fitted_model,
                             color='r', pulls=False, errors=res.errors)
