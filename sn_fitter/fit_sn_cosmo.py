@@ -108,7 +108,7 @@ class Fit_LC:
             
             
             select = lc[idx]
-            idx = select['flux']/select['fluxerr'] >=self.snrmin
+            idx = select['flux']/select['fluxerr_photo'] >=self.snrmin
             select = select[idx]
             select['diff_time'] = select.meta['daymax']-select['time']
             nlc_bef = len(select[select['diff_time']>=0])

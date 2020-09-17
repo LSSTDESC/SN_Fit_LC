@@ -64,7 +64,7 @@ class Fit_LC:
         # for this light curve, estimate SN parameter errors from Fisher values
 
         idx = lc['flux'] > 0.
-        idx = lc['flux']/lc['fluxerr'] > self.snrmin
+        idx = lc['flux']/lc['fluxerr_photo'] > self.snrmin
 
         selecta = lc[idx]
         selecta['diff_time'] = selecta.meta['daymax']-selecta['time']
