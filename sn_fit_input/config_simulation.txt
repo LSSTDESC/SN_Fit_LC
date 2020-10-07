@@ -1,0 +1,38 @@
+## production Id
+ProductionID prodid str #Production Id
+
+## Instrument
+Instrument name LSST str #instrument name
+Instrument throughputDir LSST_THROUGHPUTS_BASELINE str #instrument throughput dir
+Instrument atmosDir THROUGHPUTS_DIR str #instrument atmos dir
+Instrument airmass 1.2 float #instrument airmass
+Instrument atmos 1 int #instrument atmos
+Instrument aerosol 0 int #instrument aerosol
+
+## Simulations ref
+Simulations prodid prodid str # Name of simulation  file
+Simulations dirname dbDir str # dir of LC files
+
+## Fitter
+Fitter name  sn_fitter.fit_sn_cosmo str # fitter name: sncosmo,snfast,...
+Fitter model salt2-extended str # spectra model
+Fitter version 2.0 str #version
+Fitter covmb 0 int # to estimate covmb after fitted values
+
+## LC selection
+LCSelection snrmin 1. float #min SNR for LC points
+LCSelection nbef 4 int #number of LC points before max
+LCSelection naft 10 int #number of LC points after max
+
+## Display
+Display 0 int #to display fit result 'on-line'
+
+##Output:
+Output directory Output_Fit str #Output directory
+Output save 1 int #output save file
+
+#Multiprocessing
+Multiprocessing nproc 1 int #multiprocessing number of procs
+
+
+
