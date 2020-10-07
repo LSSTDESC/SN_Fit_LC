@@ -22,8 +22,8 @@ class Fitting:
         # load instrument
         tel_par = fitter_config['Instrument']
         telescope = Telescope(name=tel_par['name'],
-                              throughput_dir=tel_par['throughput_dir'],
-                              atmos_dir=tel_par['atmos_dir'],
+                              throughput_dir=tel_par['throughputDir'],
+                              atmos_dir=tel_par['atmosDir'],
                               atmos=tel_par['atmos'],
                               aerosol=tel_par['aerosol'],
                               airmass=tel_par['airmass'])
@@ -31,7 +31,7 @@ class Fitting:
         self.mbcalc = fitter_config['Fitter']['covmb']
         self.covmb = covmb
         display_lc = fitter_config['Display']
-        LC_sel = fitter_config['LC_selection']
+        LC_sel = fitter_config['LCSelection']
 
         module = import_module(fitter_config['Fitter']['name'])
         # fit instance
