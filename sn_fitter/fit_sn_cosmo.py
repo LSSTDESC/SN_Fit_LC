@@ -108,21 +108,22 @@ class Fit_LC:
             
             
             select = lc[idx]
-            idx = select['flux']/select['fluxerr_photo'] >=self.snrmin
+            select['snr'] = select['flux']/select['fluxerr_photo']
+            idx = select['snr'] >=self.snrmin
             select = select[idx]
             select['diff_time'] = select.meta['daymax']-select['time']
             nlc_bef = len(select[select['diff_time']>=0])
             nlc_aft = len(select[select['diff_time']<0])
             # check the total number of LC points here
             assert((nlc_bef+nlc_aft)==len(select))
-            select = select[['flux', 'fluxerr', 'band', 'zp', 'zpsys', 'time']]
+            #select = select[['flux', 'fluxerr', 'band', 'zp', 'zpsys', 'time']]
             #print('Selection', len(selecta))
             #if len(select) >= 5:
             if nlc_bef >= self.nbef and nlc_aft >= self.naft:
                 try:
                     # fit here
                     res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model, [
-                        't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.001, z+0.001)}, minsnr=0.0)
+                        't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
@@ -257,7 +258,7 @@ class Fit_LC:
                 for var in ['N_bef', 'N_aft', 'SNR']:
                     resfi['{}_{}'.format(var, b)] = 0
 
-        return resfi.to_dict(orient='record')[0]
+        return resfi.to_dict(orient='records')[0]
 
     def SNR(self, lc):
         """
@@ -295,3 +296,40 @@ class Fit_LC:
         return pd.DataFrame({'N_bef': [grp['N_bef'].sum()],
                              'N_aft': [grp['N_aft'].sum()],
                              'SNR': [self.SNR(grp)]})
+    
+    def plotLC(self, table, time_display=10):
+        """ Light curve plot using sncosmo methods
+        
+        Parameters
+        ---------------
+        table: astropy table
+         table with LS informations (flux, ...)
+       time_display: float
+         duration of the window display
+        """
+
+        import matplotlib.pyplot as plt
+
+        if 'x1' in table.meta.keys():
+            x1 = table.meta['x1']
+            color = table.meta['color']
+            x0 = table.meta['x0']
+        else:
+            x1 = 0.
+            color = 0.
+            x0 = 0.
+        daymax = table.meta['daymax']
+
+        print('plotting')
+        model = sncosmo.Model('salt2')
+        model.set(z=z,
+                  c=color,
+                  t0=daymax,
+                  #x0=x0,
+                  x1=x1)
+
+        sncosmo.plot_lc(data=table)
+
+        plt.draw()
+        plt.pause(time_display)
+        plt.close()
