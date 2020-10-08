@@ -193,7 +193,7 @@ class Fit_LC:
                 for var in ['N_bef', 'N_aft', 'SNR']:
                     resfi['{}_{}'.format(var, b)] = 0
 
-        return resfi.to_dict(orient='record')[0]
+        return resfi.to_dict(orient='records')[0]
 
     def SNR(self, lc):
         """

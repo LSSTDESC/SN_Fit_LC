@@ -17,7 +17,6 @@ Simulations dirname dbDir str # dir of LC files
 Fitter name  sn_fitter.fit_sn_cosmo str # fitter name: sncosmo,snfast,...
 Fitter model salt2-extended str # spectra model
 Fitter version 2.0 str #version
-Fitter covmb 0 int # to estimate covmb after fitted values
 
 ## LC selection
 LCSelection snrmin 1. float #min SNR for LC points
@@ -34,5 +33,10 @@ Output save 1 int #output save file
 #Multiprocessing
 Multiprocessing nproc 1 int #multiprocessing number of procs
 
+#mbcov
 
+mbcov estimate 0 int #to activate estimation of mbcov
+mbcov directory SALT2_Files str # directory where to find files to estimate mbcov
 
+#Web path
+WebPath https://me.lsst.eu/gris/DESC_SN_pipeline str #web path for reference files

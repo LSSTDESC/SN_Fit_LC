@@ -28,7 +28,7 @@ class Fitting:
                               aerosol=tel_par['aerosol'],
                               airmass=tel_par['airmass'])
 
-        self.mbcalc = fitter_config['Fitter']['covmb']
+        self.mbcalc = fitter_config['mbcov']['estimate']
         self.covmb = covmb
         display_lc = fitter_config['Display']
         LC_sel = fitter_config['LCSelection']
@@ -172,7 +172,7 @@ class Fitting:
         sigmu_sq += 2.*self.alpha*resu['Cov_x1mb']
         sigmu_sq += -2.*self.alpha*self.beta*vals['Cov_x1color'].data
         sigmu_sq += -2.*self.beta*resu['Cov_colormb']
-        sigmu = 0.
+        sigmu = np.array([0.])
         if sigmu_sq >= 0.:
             sigmu = np.sqrt(sigmu_sq)
 
