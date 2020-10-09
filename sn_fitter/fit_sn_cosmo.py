@@ -119,6 +119,7 @@ class Fit_LC:
             #select = select[['flux', 'fluxerr', 'band', 'zp', 'zpsys', 'time']]
             #print('Selection', len(selecta))
             #if len(select) >= 5:
+            
             if nlc_bef >= self.nbef and nlc_aft >= self.naft:
                 try:
                     # fit here
@@ -156,7 +157,9 @@ class Fit_LC:
 
         resa.update(resb)
 
-        return Table(rows=[list(resa.values())], names=list(resa.keys()))
+        output =  Table(rows=[list(resa.values())], names=list(resa.keys()))
+
+        return output
 
     def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus):
         """
