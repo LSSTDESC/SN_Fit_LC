@@ -64,7 +64,8 @@ class Fit_LC:
         # for this light curve, estimate SN parameter errors from Fisher values
 
         idx = lc['flux'] > 0.
-        idx = lc['flux']/lc['fluxerr_photo'] > self.snrmin
+        idx &= lc['fluxerr'] > 0.
+        idx &= lc['flux']/lc['fluxerr_photo'] >= self.snrmin
 
         selecta = lc[idx]
         selecta['diff_time'] = selecta.meta['daymax']-selecta['time']
@@ -73,15 +74,12 @@ class Fit_LC:
 
         # check the total number of LC points here
         assert((nlc_bef+nlc_aft)==len(selecta))
-        
-        selecta = selecta[['flux', 'fluxerr',
-                           'band', 'zp', 'zpsys', 'time']]
 
         #if len(lc[idx])<=5:
         if nlc_bef < self.nbef or nlc_aft < self.naft:
             return Table()
         
-        sn = CalcSN(lc[idx], nBef=0, nAft=0,
+        sn = CalcSN(selecta, nBef=0, nAft=0,
                     nPhamin=0, nPhamax=0,
                     params=['x0', 'x1', 'daymax', 'color'])
 
@@ -95,7 +93,9 @@ class Fit_LC:
 
         resa.update(resb)
 
-        return Table(rows=[list(resa.values())], names=list(resa.keys()))
+        output=Table(rows=[list(resa.values())], names=list(resa.keys()))
+        
+        return output
 
     def _transform(self, meta, sn, fitstatus):
         """
