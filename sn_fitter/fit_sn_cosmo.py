@@ -123,8 +123,7 @@ class Fit_LC:
             if nlc_bef >= self.nbef and nlc_aft >= self.naft:
                 try:
                     # fit here
-                    res, fitted_model = sncosmo.fit_lc(select, self.SN_fit_model, [
-                        't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
+                    res, fitted_model = sncosmo.fit_lc(select, model=self.SN_fit_model, vparam_names=['t0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
