@@ -109,26 +109,6 @@ class TestSNFit(unittest.TestCase):
         for key in keychecks:
             assert(np.isclose(fit_lc_ref[key].tolist(), sel[key].tolist()).all())
 
-        """
-        print(res.columns)
-        for key in keychecks:
-            print('dictRef[\'{}\']='.format(key), res[key].tolist())
-        print(testoo)
-        dictRef = {}
-
-        dictRef['z'] = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-        dictRef['Cov_colorcolor'] = [7.84149720548657e-07, 7.411367293053516e-06, 6.793756102580619e-05,
-                                     0.00015816525343875836, 0.0004502363398936092, 0.001167662290074013, 0.008186441880889383, 0.01633751529759251]
-        dictRef['mbfit'] = [20.005795111491146, 21.64206956980012, 22.64256913193122, 23.372165710405174,
-                            23.948145769722828, 24.42636698333764, 24.835436823080904, 25.19122934728612]
-        dictRef['mb_recalc'] = [20.02731344585068, 21.663516325567763, 22.66404477842765,
-                                23.39363924396809, 23.969613792664823, 24.4478277942898, 24.85691319019894, 25.212677718902857]
-        dictRef['sigma_mu'] = [0.0025744440149275205, 0.008148971048222674, 0.024267233165841652,
-                               0.03934245428396615, 0.06908538342541443, 0.10804914411477154, 0.288358020033676, 0.4019877529973541]
-
-        for key in keychecks:
-            assert(np.isclose(dictRef[key], res[key].tolist()).all())
-        """
         # cleaning directory
         for fi in [simu_name, lc_name]:
             if os.path.isfile(fi):
