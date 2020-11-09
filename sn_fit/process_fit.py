@@ -41,8 +41,9 @@ class Fitting:
             telescope=telescope, display=display_lc,
             snrmin=LC_sel['snrmin'],
             nbef=LC_sel['nbef'],
-            naft=LC_sel['naft'])
-
+            naft=LC_sel['naft'],
+            nbands= LC_sel['nbands'])
+        
         if fitter_config['Output']['save']:
             self.prepareSave(
                 fitter_config['Output']['directory'], fitter_config['ProductionID'])

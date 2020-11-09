@@ -22,6 +22,7 @@ Fitter version 1.0 str #version
 LCSelection snrmin 1. float #min SNR for LC points
 LCSelection nbef 4 int #number of LC points before max
 LCSelection naft 10 int #number of LC points after max
+LCSelection nbands 3 int #min number of bands to be used for the fit
 
 ## Display
 Display 0 int #to display fit result 'on-line'

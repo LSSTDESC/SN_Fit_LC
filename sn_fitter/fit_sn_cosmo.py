@@ -30,13 +30,14 @@ class Fit_LC:
     
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5):
+    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5,nbands=3):
 
         self.display = display
         self.bands = bands
         self.snrmin = snrmin
         self.nbef = nbef
         self.naft = naft
+        self.nbands = nbands
         
         # get the bands for sncosmo registration - with and without airmass
 
@@ -108,7 +109,7 @@ class Fit_LC:
             
             
             select = lc[idx]
-            select['snr'] = select['flux']/select['fluxerr_photo']
+            select['snr'] = select['flux']/select['fluxerr']
             idx = select['snr'] >=self.snrmin
             select = select[idx]
             select['diff_time'] = select.meta['daymax']-select['time']
@@ -120,7 +121,10 @@ class Fit_LC:
             #print('Selection', len(selecta))
             #if len(select) >= 5:
             
-            if nlc_bef >= self.nbef and nlc_aft >= self.naft:
+
+            nbands = len(np.unique(select['band']))
+            #print('there man',nbands,self.snrmin,len(select),z)
+            if nlc_bef >= self.nbef and nlc_aft >= self.naft and nbands >= self.nbands:
                 try:
                     # fit here
                     res, fitted_model = sncosmo.fit_lc(select, model=self.SN_fit_model, vparam_names=['t0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
