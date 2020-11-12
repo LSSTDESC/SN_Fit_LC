@@ -2,7 +2,7 @@ import sncosmo
 import numpy as np
 from astropy import (cosmology, units as u, constants as const)
 import pandas as pd
-from astropy.table import Table
+from astropy.table import Table,vstack
 
 
 class Fit_LC:
@@ -33,6 +33,7 @@ class Fit_LC:
     def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5,nbands=3):
 
         self.display = display
+        #self.display = True
         self.bands = bands
         self.snrmin = snrmin
         self.nbef = nbef
@@ -80,11 +81,11 @@ class Fit_LC:
             return None, None
 
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
-        res_params_values = np.zeros((5,), dtype=float)
+        res_params_values = np.zeros((5,1), dtype=float)
         vparam_names = ['t0', 'x0', 'x1', 'c']
         covariance = np.zeros((4, 4,), dtype=float)
-        mbfit = -1
-        z = -1
+        mbfit = -1.
+        z = -1.
         fitstatus = 'nofit'
         meta = None
         if lc is not None:
@@ -93,6 +94,7 @@ class Fit_LC:
 
             # set redshift for the fit
             z = meta['z']
+            daymax = meta['daymax']
             self.SN_fit_model.set(z=z)
 
             # LC points selection: make sure enough points with minimal snr
@@ -112,22 +114,36 @@ class Fit_LC:
             select['snr'] = select['flux']/select['fluxerr']
             idx = select['snr'] >=self.snrmin
             select = select[idx]
-            select['diff_time'] = select.meta['daymax']-select['time']
+            select['diff_time'] = daymax-select['time']
             nlc_bef = len(select[select['diff_time']>=0])
             nlc_aft = len(select[select['diff_time']<0])
             # check the total number of LC points here
             assert((nlc_bef+nlc_aft)==len(select))
-            #select = select[['flux', 'fluxerr', 'band', 'zp', 'zpsys', 'time']]
-            #print('Selection', len(selecta))
-            #if len(select) >= 5:
+         
             
+            selb = Table()
+            for b in np.unique(select['band']):
+                io = select['band']==b
+                selo = select[io]
+                ibo = selo['snr']>=5.
+                #print(b,len(selo[ibo]))
+                if len(selo[ibo]) >= 2.:
+                    selb = vstack([selb,selo])
+                    
 
-            nbands = len(np.unique(select['band']))
+            #print(len(selb),len(select),nlc_bef,nlc_aft)
+            select = Table(selb)
+            
+            if len(select) ==0:
+                nbands = 0
+            else:
+                nbands = len(np.unique(select['band']))
             #print('there man',nbands,self.snrmin,len(select),z)
             if nlc_bef >= self.nbef and nlc_aft >= self.naft and nbands >= self.nbands:
                 try:
                     # fit here
-                    res, fitted_model = sncosmo.fit_lc(select, model=self.SN_fit_model, vparam_names=['t0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
+                    selfit = select.copy()
+                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=['t0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
@@ -141,16 +157,17 @@ class Fit_LC:
                         fitstatus = 'badfit'
                 except (RuntimeError, TypeError, NameError):
                     fitstatus = 'crash'
+                    # set the simulation values here
+                    res_params_values = np.array([meta['z'],meta['daymax'],meta['x0'],meta['x1'], meta['color']])
             else:
                 fitstatus = 'nodat'
 
-       # Make a dict of the fitted result (plus metadata)
-        resa = self._transform(meta, res_param_names, list(
-            res_params_values), vparam_names, covariance, mbfit, fitstatus)
-
-        resb = self._get_infos(
-            z, res_params_values[res_param_names.index('t0')], select)
-
+        # Make a dict of the fitted result (plus metadata)
+        #print('herea')
+        """
+        if fitstatus == 'crash':
+            return None
+        """
         if self.display and len(select) >= 5:
             print(select['band','time','flux','fluxerr'])
             import pylab as plt
@@ -158,10 +175,17 @@ class Fit_LC:
                             color='r', pulls=False, errors=res.errors)
             plt.show()
 
+        resa = self._transform(meta, res_param_names, list(
+            res_params_values), vparam_names, covariance, mbfit, fitstatus)
+    
+        """
+        resb = self._get_infos(
+            z, res_params_values[res_param_names.index('t0')], select)
         resa.update(resb)
-
+        """
+       
         output =  Table(rows=[list(resa.values())], names=list(resa.keys()))
-
+        
         return output
 
     def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus):
@@ -200,7 +224,7 @@ class Fit_LC:
             res[key] = value
 
         for i in range(len(par_names)):
-            res[self.parNames[par_names[i]]+'_fit'] = params[i]
+            res[self.parNames[par_names[i]]+'_fit'] = params[i].item()
 
             for i, name in enumerate(vpar_names):
                 for j, nameb in enumerate(vpar_names):
@@ -240,9 +264,8 @@ class Fit_LC:
         """
 
         lcdf = lc.to_pandas()
-
+        
         lcdf['phase'] = (lcdf['time']-T0)/(1.+z)
-
         lcdf['N_bef'] = lcdf['phase'] <= 0
         lcdf['N_aft'] = lcdf['phase'] > 0
 
