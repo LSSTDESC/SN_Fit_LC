@@ -67,23 +67,25 @@ class Selection:
 
         if nlc_bef < self.nbef or nlc_aft < self.naft:
             return None
-        # select the number of bands to be used
-        selb = Table()
-        for b in np.unique(selecta['band']):
-            io = selecta['band']==b
-            selo = selecta[io]
-            ibo = selo['snr']>=5.
-            #print(b,len(selo[ibo]))
-            if len(selo[ibo]) >= 2.:
-                selb = vstack([selb,selo])
 
-        select = Table(selb)
+        if self.nbands > 0:
+            # select the number of bands to be used
+            selb = Table()
+            for b in np.unique(selecta['band']):
+                io = selecta['band']==b
+                selo = selecta[io]
+                ibo = selo['snr']>=5.
+                #print(b,len(selo[ibo]))
+                if len(selo[ibo]) >= 2.:
+                    selb = vstack([selb,selo])
 
-        nbands = 0
-        if len(select) > 0.:
-            nbands = len(np.unique(select['band']))
+            selecta = Table(selb)
+
+            nbands = 0
+            if len(selecta) > 0.:
+                nbands = len(np.unique(selecta['band']))
         
-        if nbands < self.nbands:
-            return None
+            if nbands < self.nbands:
+                return None
 
-        return select
+        return selecta
