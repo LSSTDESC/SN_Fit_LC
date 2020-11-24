@@ -2,7 +2,7 @@ import sncosmo
 import numpy as np
 from astropy import (cosmology, units as u, constants as const)
 import pandas as pd
-from astropy.table import Table
+from astropy.table import Table,vstack
 from sn_tools.sn_calcFast import CalcSN
 
 
@@ -30,13 +30,15 @@ class Fit_LC:
       minimal number of LC points after max (default: 5) 
     """
 
-    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5):
+    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5,nbands=3):
 
         self.display = display
         self.bands = bands
         self.snrmin = snrmin
         self.nbef = nbef
         self.naft = naft
+        self.nbands = nbands
+
         # name parameters
         self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c'], [
                              'z', 't0', 'x0', 'x1', 'color']))
@@ -65,9 +67,13 @@ class Fit_LC:
 
         idx = lc['flux'] > 0.
         idx &= lc['fluxerr'] > 0.
-        idx &= lc['flux']/lc['fluxerr_photo'] >= self.snrmin
+      
 
         selecta = lc[idx]
+        selecta['snr'] = selecta['flux']/selecta['fluxerr']
+        idx &= selecta['snr']>= self.snrmin
+        selecta = selecta[idx]
+        
         selecta['diff_time'] = selecta.meta['daymax']-selecta['time']
         nlc_bef = len(selecta[selecta['diff_time']>=0])
         nlc_aft = len(selecta[selecta['diff_time']<0])
@@ -75,11 +81,25 @@ class Fit_LC:
         # check the total number of LC points here
         assert((nlc_bef+nlc_aft)==len(selecta))
 
-        #if len(lc[idx])<=5:
-        if nlc_bef < self.nbef or nlc_aft < self.naft:
+        selb = Table()
+        for b in np.unique(selecta['band']):
+            io = selecta['band']==b
+            selo = selecta[io]
+            ibo = selo['snr']>=5.
+            #print(b,len(selo[ibo]))
+            if len(selo[ibo]) >= 2.:
+                selb = vstack([selb,selo])
+
+        select = Table(selb)
+
+        nbands = 0
+        if len(select) > 0.:
+            nbands = len(np.unique(select['band']))
+        
+        if nlc_bef < self.nbef or nlc_aft < self.naft or nbands < self.nbands:
             return Table()
         
-        sn = CalcSN(selecta, nBef=0, nAft=0,
+        sn = CalcSN(select, nBef=0, nAft=0,
                     nPhamin=0, nPhamax=0,
                     params=['x0', 'x1', 'daymax', 'color'])
 
