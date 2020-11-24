@@ -2,10 +2,10 @@ import sncosmo
 import numpy as np
 from astropy import (cosmology, units as u, constants as const)
 import pandas as pd
-from astropy.table import Table,vstack
+from astropy.table import Table
+from sn_fit.sn_utils import Selection
 
-
-class Fit_LC:
+class Fit_LC(Selection):
     """
     class to fit simulated light curves
 
@@ -31,7 +31,8 @@ class Fit_LC:
     """
 
     def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5,nbands=3):
-
+        super().__init__(snrmin,nbef,naft,nbands)
+        
         self.display = display
         #self.display = True
         self.bands = bands
@@ -97,49 +98,9 @@ class Fit_LC:
             daymax = meta['daymax']
             self.SN_fit_model.set(z=z)
 
-            # LC points selection: make sure enough points with minimal snr
-
-            idx = lc['flux'] > 0.
-            idx &= lc['fluxerr'] > 0.
-
-            """
-            selecta = lc[idx]
-            idx = selecta['flux']/selecta['fluxerr'] >= snr_min
-            selecta = selecta[idx][['flux', 'fluxerr',
-                                    'band', 'zp', 'zpsys', 'time']]
-            """
-            
-            
-            select = lc[idx]
-            select['snr'] = select['flux']/select['fluxerr']
-            idx = select['snr'] >=self.snrmin
-            select = select[idx]
-            select['diff_time'] = daymax-select['time']
-            nlc_bef = len(select[select['diff_time']>=0])
-            nlc_aft = len(select[select['diff_time']<0])
-            # check the total number of LC points here
-            assert((nlc_bef+nlc_aft)==len(select))
-         
-            
-            selb = Table()
-            for b in np.unique(select['band']):
-                io = select['band']==b
-                selo = select[io]
-                ibo = selo['snr']>=5.
-                #print(b,len(selo[ibo]))
-                if len(selo[ibo]) >= 2.:
-                    selb = vstack([selb,selo])
-                    
-
-            #print(len(selb),len(select),nlc_bef,nlc_aft)
-            select = Table(selb)
-            
-            if len(select) ==0:
-                nbands = 0
-            else:
-                nbands = len(np.unique(select['band']))
-            #print('there man',nbands,self.snrmin,len(select),z)
-            if nlc_bef >= self.nbef and nlc_aft >= self.naft and nbands >= self.nbands:
+            select = self.select(lc)
+           
+            if select is not None:
                 try:
                     # fit here
                     selfit = select.copy()
