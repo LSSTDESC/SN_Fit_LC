@@ -2,7 +2,6 @@ from sn_tools.sn_telescope import Telescope
 from astropy.table import Table, vstack
 from importlib import import_module
 import os
-import numpy as np
 import h5py
 
 
@@ -151,6 +150,7 @@ class Fitting:
         Cov_x0mb,Cov_x1mb,Cov_colormb,Cov_mbmb,mb_recalc,sigma_mu
 
         """
+        import numpy as np
 
         cov = np.ndarray(shape=(3, 3), dtype=float, order='F')
         cov[0, 0] = vals['Cov_x0x0'].data
