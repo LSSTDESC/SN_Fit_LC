@@ -17,11 +17,15 @@ class Selection:
       number of bands with at least two points with SNR>=5.
 
     """
-    def __init__(self,snrmin, nbef, naft,nbands):
+    def __init__(self,snrmin, nbef, naft,nbands,phase_min,phase_max,nphase_min,nphase_max):
         self.snrmin = snrmin
         self.nbef = nbef
         self.aft = naft
         self.nbands = nbands
+        self.phase_min = phase_min
+        self.phase_max = phase_max
+        self.nphase_min = nphase_min
+        self.nphase_max = nphase_max
         
 
     def select(self,lc):
@@ -58,14 +62,24 @@ class Selection:
             return None
         
         # number of points before/after
-        selecta['diff_time'] = selecta.meta['daymax']-selecta['time']
-        nlc_bef = len(selecta[selecta['diff_time']>=0])
-        nlc_aft = len(selecta[selecta['diff_time']<0])
+        if 'phase' not in selecta.columns:
+            selecta['phase'] = (selecta.meta['daymax']-selecta['time'])/(1.+selecta.meta['z'])
+        nlc_bef = len(selecta[selecta['phase']>=0])
+        nlc_aft = len(selecta[selecta['phase']<0])
 
         # check the total number of LC points here
         assert((nlc_bef+nlc_aft)==len(selecta))
 
         if nlc_bef < self.nbef or nlc_aft < self.naft:
+            return None
+
+        # phase min and phase max sel
+        idd = selecta['phase']<= self.phase_min
+        nph_min= len(selecta[idd])
+        idd = selecta['phase']>= self.phase_max
+        nph_max= len(selecta[idd])
+
+        if nph_min < self.nphase_min or nph_max < self.nphase_max:
             return None
 
         if self.nbands > 0:
