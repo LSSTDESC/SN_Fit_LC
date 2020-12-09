@@ -27,19 +27,23 @@ class Fit_LC(Selection):
       minimal number of LC points before max (default: 4)
     naft: int, opt
       minimal number of LC points after max (default: 5) 
+    phasemin: float, opt
+     min phase for LC selection (default: -5)
+    phasemax: float, opt
+     max phase for LC selection (default: 20.)
+    nphasemin: int, opt
+     number of LC points with phase <= phasemin (default: 1)
+    nphasemax: int, opt
+     number of LC points with phase>= phasemax (default: 1)
     
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5,nbands=3):
-        super().__init__(snrmin,nbef,naft,nbands)
+    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5,nbands=3,phasemin=-5,phasemax=20,nphasemin=1,nphase_max=1):
+        super().__init__(snrmin,nbef,naft,nbands,phasemin,phasemax,nphasemin,nphasemax)
         
         self.display = display
         #self.display = True
         self.bands = bands
-        self.snrmin = snrmin
-        self.nbef = nbef
-        self.naft = naft
-        self.nbands = nbands
         
         # get the bands for sncosmo registration - with and without airmass
 

@@ -24,7 +24,7 @@ LCSelection nbef 4 int #number of LC points before max
 LCSelection naft 10 int #number of LC points after max
 LCSelection nbands 3 int #min number of bands to be used for the fit
 LCSelection phasemin -5. float #min phase for selection
-LCSelection phasemax 60. float #max phase for selection
+LCSelection phasemax 20. float #max phase for selection
 LCSelection nphasemin 1 int #number of LC points with phase<=phasemin
 LCSelection nphasemax 1 int #number of LC points with phase>=phasemax
 
