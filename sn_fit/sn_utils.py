@@ -18,15 +18,15 @@ class Selection:
 
     """
     def __init__(self,snrmin, nbef, naft,nbands,phase_min,phase_max,nphase_min,nphase_max):
+
         self.snrmin = snrmin
         self.nbef = nbef
-        self.aft = naft
+        self.naft = naft
         self.nbands = nbands
         self.phase_min = phase_min
         self.phase_max = phase_max
         self.nphase_min = nphase_min
         self.nphase_max = nphase_max
-        
 
     def select(self,lc):
         """
