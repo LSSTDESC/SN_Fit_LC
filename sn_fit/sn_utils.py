@@ -1,5 +1,6 @@
-from astropy.table import Table,vstack
+from astropy.table import Table, vstack
 import numpy as np
+
 
 class Selection:
     """
@@ -17,7 +18,8 @@ class Selection:
       number of bands with at least two points with SNR>=5.
 
     """
-    def __init__(self,snrmin, nbef, naft,nbands,phase_min,phase_max,nphase_min,nphase_max):
+
+    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max):
 
         self.snrmin = snrmin
         self.nbef = nbef
@@ -28,10 +30,10 @@ class Selection:
         self.nphase_min = nphase_min
         self.nphase_max = nphase_max
 
-    def select(self,lc):
+    def select(self, lc):
         """
         Method to select LC according to criteria
-    
+
         Parameters
         --------------
         lc : astropy table
@@ -49,35 +51,36 @@ class Selection:
         # some cleaning here
         idx = lc['flux'] > 0.
         idx &= lc['fluxerr'] > 0.
-      
+
         selecta = lc[idx]
         # add snr
         selecta['snr'] = selecta['flux']/selecta['fluxerr']
 
         # select LC points according to SNRmin
-        idx = selecta['snr']>= self.snrmin
+        idx = selecta['snr'] >= self.snrmin
         selecta = selecta[idx]
 
         if len(selecta) == 0:
             return None
-        
+
         # number of points before/after
         if 'phase' not in selecta.columns:
-            selecta['phase'] = (selecta.meta['daymax']-selecta['time'])/(1.+selecta.meta['z'])
-        nlc_bef = len(selecta[selecta['phase']>=0])
-        nlc_aft = len(selecta[selecta['phase']<0])
+            selecta['phase'] = (
+                selecta['time']-selecta.meta['daymax'])/(1.+selecta.meta['z'])
+        nlc_bef = len(selecta[selecta['phase'] <= 0])
+        nlc_aft = len(selecta[selecta['phase'] > 0])
 
         # check the total number of LC points here
-        assert((nlc_bef+nlc_aft)==len(selecta))
+        assert((nlc_bef+nlc_aft) == len(selecta))
 
         if nlc_bef < self.nbef or nlc_aft < self.naft:
             return None
 
         # phase min and phase max sel
-        idd = selecta['phase']<= self.phase_min
-        nph_min= len(selecta[idd])
-        idd = selecta['phase']>= self.phase_max
-        nph_max= len(selecta[idd])
+        idd = selecta['phase'] <= self.phase_min
+        nph_min = len(selecta[idd])
+        idd = selecta['phase'] >= self.phase_max
+        nph_max = len(selecta[idd])
 
         if nph_min < self.nphase_min or nph_max < self.nphase_max:
             return None
@@ -86,19 +89,19 @@ class Selection:
             # select the number of bands to be used
             selb = Table()
             for b in np.unique(selecta['band']):
-                io = selecta['band']==b
+                io = selecta['band'] == b
                 selo = selecta[io]
-                ibo = selo['snr']>=5.
-                #print(b,len(selo[ibo]))
+                ibo = selo['snr'] >= 5.
+                # print(b,len(selo[ibo]))
                 if len(selo[ibo]) >= 2.:
-                    selb = vstack([selb,selo])
+                    selb = vstack([selb, selo])
 
             selecta = Table(selb)
 
             nbands = 0
             if len(selecta) > 0.:
                 nbands = len(np.unique(selecta['band']))
-        
+
             if nbands < self.nbands:
                 return None
 
