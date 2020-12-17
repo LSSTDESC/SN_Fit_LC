@@ -123,7 +123,10 @@ class Fit_LC(Selection):
                 except (RuntimeError, TypeError, NameError):
                     fitstatus = 'crash'
                     # set the simulation values here
-                    res_params_values = np.array([meta['z'],meta['daymax'],meta['x0'],meta['x1'], meta['color']])
+                    if meta['sn_type'] == 'SN_Ia':
+                        res_params_values = np.array([meta['z'],meta['daymax'],meta['x0'],meta['x1'], meta['color']])
+                    else:
+                        res_params_values = np.array([meta['z'],meta['daymax'],-1.0,-1.0,-1.0])  
             else:
                 fitstatus = 'nodat'
 
