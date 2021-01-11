@@ -59,14 +59,18 @@ class Fit_LC(Selection):
         # get the source
         source = sncosmo.get_source(model, version=str(version))
         # get the dust
-        dust = sncosmo.OD94Dust()
+        dustmap = sncosmo.OD94Dust()
 
         # sn_fit_model instance
-        self.SN_fit_model = sncosmo.Model(source=source)
+        #self.SN_fit_model = sncosmo.Model(source=source)
+        self.SN_fit_model = sncosmo.Model(source=source,
+                                          effects=[dustmap, dustmap],
+                                          effect_names=['host', 'mw'],
+                                          effect_frames=['rest', 'obs'])
 
         # name parameters
-        self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c'], [
-                             'z', 't0', 'x0', 'x1', 'color']))
+        self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c','hostebv','hostr_v','mwebv','mwr_v'], [
+                             'z', 't0', 'x0', 'x1', 'color','hostebv','hostr_v','mwebv','mwr_v']))
 
     def __call__(self, lc):
         """
@@ -101,6 +105,8 @@ class Fit_LC(Selection):
             z = meta['z']
             daymax = meta['daymax']
             self.SN_fit_model.set(z=z)
+            # apply extinction here
+            self.SN_fit_model.set(mwebv=lc.meta['ebvofMW'])
 
             select = self.select(lc)
            
