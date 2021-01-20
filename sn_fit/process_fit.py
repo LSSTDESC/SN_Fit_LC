@@ -41,12 +41,12 @@ class Fitting:
             snrmin=LC_sel['snrmin'],
             nbef=LC_sel['nbef'],
             naft=LC_sel['naft'],
-            nbands= LC_sel['nbands'],
+            nbands=LC_sel['nbands'],
             phasemin=LC_sel['phasemin'],
             phasemax=LC_sel['phasemax'],
             nphasemin=LC_sel['nphasemin'],
             nphasemax=LC_sel['nphasemax'])
-        
+
         if fitter_config['Output']['save']:
             self.prepareSave(
                 fitter_config['Output']['directory'], fitter_config['ProductionID'])
