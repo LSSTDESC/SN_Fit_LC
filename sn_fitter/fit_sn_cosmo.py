@@ -5,6 +5,7 @@ import pandas as pd
 from astropy.table import Table
 from sn_fit.sn_utils import Selection
 
+
 class Fit_LC(Selection):
     """
     class to fit simulated light curves
@@ -35,16 +36,19 @@ class Fit_LC(Selection):
      number of LC points with phase <= phasemin (default: 1)
     nphasemax: int, opt
      number of LC points with phase>= phasemax (default: 1)
-    
+    errmodrel: float, opt
+      max error model relative value (default: -1.)
+
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy',snrmin=5.,nbef=4,naft=5,nbands=3,phasemin=-5,phasemax=20,nphasemin=1,nphasemax=1):
-        super().__init__(snrmin,nbef,naft,nbands,phasemin,phasemax,nphasemin,nphasemax)
+    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1, errmodrel=-1.):
+        super().__init__(snrmin, nbef, naft, nbands,
+                         phasemin, phasemax, nphasemin, nphasemax, errmodrel)
 
         self.display = display
         #self.display = True
         self.bands = bands
-        
+
         # get the bands for sncosmo registration - with and without airmass
 
         for band in bands:
@@ -69,8 +73,8 @@ class Fit_LC(Selection):
                                           effect_frames=['rest', 'obs'])
 
         # name parameters
-        self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c','hostebv','hostr_v','mwebv','mwr_v'], [
-                             'z', 't0', 'x0', 'x1', 'color','hostebv','hostr_v','mwebv','mwr_v']))
+        self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c', 'hostebv', 'hostr_v', 'mwebv', 'mwr_v'], [
+                             'z', 't0', 'x0', 'x1', 'color', 'hostebv', 'hostr_v', 'mwebv', 'mwr_v']))
 
     def __call__(self, lc):
         """
@@ -90,7 +94,7 @@ class Fit_LC(Selection):
             return None, None
 
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
-        res_params_values = np.zeros((5,1), dtype=float)
+        res_params_values = np.zeros((5, 1), dtype=float)
         vparam_names = ['t0', 'x0', 'x1', 'c']
         covariance = np.zeros((4, 4,), dtype=float)
         mbfit = -1.
@@ -106,15 +110,16 @@ class Fit_LC(Selection):
             daymax = meta['daymax']
             self.SN_fit_model.set(z=z)
             # apply extinction here
-            self.SN_fit_model.set(mwebv=lc.meta['ebvofMW'])
+            self.SN_fit_model.set(mwebv=meta['ebvofMW'])
 
             select = self.select(lc)
-           
+
             if select is not None:
                 try:
                     # fit here
                     selfit = select.copy()
-                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=['t0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
+                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=[
+                                                       't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
@@ -130,20 +135,22 @@ class Fit_LC(Selection):
                     fitstatus = 'crash'
                     # set the simulation values here
                     if meta['sn_type'] == 'SN_Ia':
-                        res_params_values = np.array([meta['z'],meta['daymax'],meta['x0'],meta['x1'], meta['color']])
+                        res_params_values = np.array(
+                            [meta['z'], meta['daymax'], meta['x0'], meta['x1'], meta['color']])
                     else:
-                        res_params_values = np.array([meta['z'],meta['daymax'],-1.0,-1.0,-1.0])  
+                        res_params_values = np.array(
+                            [meta['z'], meta['daymax'], -1.0, -1.0, -1.0])
             else:
                 fitstatus = 'nodat'
 
         # Make a dict of the fitted result (plus metadata)
-        #print('herea')
+        # print('herea')
         """
         if fitstatus == 'crash':
             return None
         """
         if self.display and len(select) >= 5:
-            print(select['band','time','flux','fluxerr'])
+            print(select['band', 'time', 'flux', 'fluxerr'])
             import pylab as plt
             sncosmo.plot_lc(select, model=fitted_model,
                             color='r', pulls=False, errors=res.errors)
@@ -151,15 +158,15 @@ class Fit_LC(Selection):
 
         resa = self._transform(meta, res_param_names, list(
             res_params_values), vparam_names, covariance, mbfit, fitstatus)
-    
+
         """
         resb = self._get_infos(
             z, res_params_values[res_param_names.index('t0')], select)
         resa.update(resb)
         """
-       
-        output =  Table(rows=[list(resa.values())], names=list(resa.keys()))
-        
+
+        output = Table(rows=[list(resa.values())], names=list(resa.keys()))
+
         return output
 
     def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus):
@@ -238,7 +245,7 @@ class Fit_LC(Selection):
         """
 
         lcdf = lc.to_pandas()
-        
+
         lcdf['phase'] = (lcdf['time']-T0)/(1.+z)
         lcdf['N_bef'] = lcdf['phase'] <= 0
         lcdf['N_aft'] = lcdf['phase'] > 0
@@ -299,10 +306,10 @@ class Fit_LC(Selection):
         return pd.DataFrame({'N_bef': [grp['N_bef'].sum()],
                              'N_aft': [grp['N_aft'].sum()],
                              'SNR': [self.SNR(grp)]})
-    
+
     def plotLC(self, table, time_display=10):
         """ Light curve plot using sncosmo methods
-        
+
         Parameters
         ---------------
         table: astropy table
@@ -328,7 +335,7 @@ class Fit_LC(Selection):
         model.set(z=z,
                   c=color,
                   t0=daymax,
-                  #x0=x0,
+                  # x0=x0,
                   x1=x1)
 
         sncosmo.plot_lc(data=table)

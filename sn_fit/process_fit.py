@@ -45,7 +45,8 @@ class Fitting:
             phasemin=LC_sel['phasemin'],
             phasemax=LC_sel['phasemax'],
             nphasemin=LC_sel['nphasemin'],
-            nphasemax=LC_sel['nphasemax'])
+            nphasemax=LC_sel['nphasemax'],
+            errmodrel=LC_sel['errmodrel'])
 
         if fitter_config['Output']['save']:
             self.prepareSave(

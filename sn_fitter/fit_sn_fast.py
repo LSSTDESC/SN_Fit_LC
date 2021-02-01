@@ -37,11 +37,13 @@ class Fit_LC(Selection):
       number of LC points with phase <= phasemin (default: 1)
     nphasemax: int, opt
       number of LC points with phase>= phasemax (default: 1)
+     errmodrel: float, opt
+      max error model relative value (default: -1.)
     """
 
-    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1):
+    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1, errmodrel=-1.):
         super().__init__(snrmin, nbef, naft, nbands,
-                         phasemin, phasemax, nphasemin, nphasemax)
+                         phasemin, phasemax, nphasemin, nphasemax, errmodrel)
 
         self.display = display
         self.bands = bands

@@ -16,10 +16,20 @@ class Selection:
        number of LC points (SNR>=snrmin) after max
     nbands: int
       number of bands with at least two points with SNR>=5.
+    phase_min: float
+      min phase for nphase_min estimator
+    phase_max: float
+      max phase for nphase_max estimator
+    nphase_min: int
+      min number of points with phase<=phase_min
+    nphase_max: int
+      min number of points with phase>=phase_max
+    errmodrel: float,opt
+      max errormodel relative error (default: -1.)
 
     """
 
-    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max):
+    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max, errmodrel=-1.):
 
         self.snrmin = snrmin
         self.nbef = nbef
@@ -29,6 +39,7 @@ class Selection:
         self.phase_max = phase_max
         self.nphase_min = nphase_min
         self.nphase_max = nphase_max
+        self.errmodrel = errmodrel
 
     def select(self, lc):
         """
@@ -55,6 +66,12 @@ class Selection:
         selecta = lc[idx]
         # add snr
         selecta['snr'] = selecta['flux']/selecta['fluxerr']
+
+        # remove points with too high errormodel
+        if self.errmodrel > 0.:
+            idx = selecta['flux'] / \
+                selecta['fluxerr_model'] <= self.errmodrel
+            selecta = selecta[idx]
 
         # select LC points according to SNRmin
         idx = selecta['snr'] >= self.snrmin
