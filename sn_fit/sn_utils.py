@@ -69,14 +69,13 @@ class Selection:
 
         # remove points with too high errormodel
         if self.errmodrel > 0.:
-            idx = selecta['flux'] / \
-                selecta['fluxerr_model'] <= self.errmodrel
+            idx = selecta['fluxerr_model']/selecta['flux'] <= self.errmodrel
             selecta = selecta[idx]
 
         # select LC points according to SNRmin
         idx = selecta['snr'] >= self.snrmin
         selecta = selecta[idx]
-
+        
         if len(selecta) == 0:
             return None
 
