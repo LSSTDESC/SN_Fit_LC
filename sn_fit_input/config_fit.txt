@@ -1,13 +1,13 @@
 ## production Id
-ProductionID prodid str #Production Id
+ProductionIDFit prodid str #Production Id
 
 ## Instrument
-Instrument name LSST str #instrument name
-Instrument throughputDir LSST_THROUGHPUTS_BASELINE str #instrument throughput dir
-Instrument atmosDir THROUGHPUTS_DIR str #instrument atmos dir
-Instrument airmass 1.2 float #instrument airmass
-Instrument atmos 1 int #instrument atmos
-Instrument aerosol 0 int #instrument aerosol
+InstrumentFit name LSST str #instrument name
+InstrumentFit throughputDir LSST_THROUGHPUTS_BASELINE str #instrument throughput dir
+InstrumentFit atmosDir THROUGHPUTS_DIR str #instrument atmos dir
+InstrumentFit airmass 1.2 float #instrument airmass
+InstrumentFit atmos 1 int #instrument atmos
+InstrumentFit aerosol 0 int #instrument aerosol
 
 ## Simulations ref
 Simulations prodid prodid str # Name of simulation  file
@@ -33,11 +33,11 @@ LCSelection errmodrel -1.0 float #max error model relative value for LC points
 Display 0 int #to display fit result 'on-line'
 
 ##Output:
-Output directory Output_Fit str #Output directory
-Output save 1 int #output save file
+OutputFit directory Output_Fit str #Output directory
+OutputFit save 1 int #output save file
 
 #Multiprocessing
-Multiprocessing nproc 1 int #multiprocessing number of procs
+MultiprocessingFit nproc 1 int #multiprocessing number of procs
 
 #mbcov
 
@@ -45,4 +45,4 @@ mbcov estimate 0 int #to activate estimation of mbcov
 mbcov directory SALT2_Files str # directory where to find files to estimate mbcov
 
 #Web path
-WebPath https://me.lsst.eu/gris/DESC_SN_pipeline str #web path for reference files
+WebPathFit https://me.lsst.eu/gris/DESC_SN_pipeline str #web path for reference files

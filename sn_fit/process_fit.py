@@ -19,7 +19,7 @@ class Fitting:
     def __init__(self, fitter_config, covmb=None):
 
         # load instrument
-        tel_par = fitter_config['Instrument']
+        tel_par = fitter_config['InstrumentFit']
         telescope = Telescope(name=tel_par['name'],
                               throughput_dir=tel_par['throughputDir'],
                               atmos_dir=tel_par['atmosDir'],
@@ -48,9 +48,9 @@ class Fitting:
             nphasemax=LC_sel['nphasemax'],
             errmodrel=LC_sel['errmodrel'])
 
-        if fitter_config['Output']['save']:
+        if fitter_config['OutputFit']['save']:
             self.prepareSave(
-                fitter_config['Output']['directory'], fitter_config['ProductionID'])
+                fitter_config['OutputFit']['directory'], fitter_config['ProductionIDFit'])
 
         self.alpha = 0.14
         self.beta = 3.1
