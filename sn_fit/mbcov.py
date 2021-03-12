@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline as Spline1d
 import os
+import copy
 
 
 class MbCov:
@@ -157,11 +158,13 @@ class MbCov:
          mb value
         """
 
-        rat = self.ratInt(params[self.paramNames['x1']],
-                          params[self.paramNames['color']])
+        x0 = params[self.paramNames['x0']]
+        x1 = params[self.paramNames['x1']]
+        color = params[self.paramNames['color']]
+        rat = self.ratInt(x1, color)
         # computation of mb
         mref = 9.907
-        mb = -2.5*np.log10(params[self.paramNames['x0']]*rat)+mref
+        mb = -2.5*np.log10(x0*rat)+mref
 
         return mb
 
@@ -261,8 +264,9 @@ class MbCov:
         h_ref = 1.e-8
         Der = np.zeros(shape=(len(vparam_names), 1))
 
-        par_var = params.copy()
+        #par_var = params.copy()
         ider = -1
+        par_var = copy.deepcopy(params)
         for i, key in enumerate(vparam_names):
             h = h_ref
             if np.abs(par_var[key]) < 1.e-5:
