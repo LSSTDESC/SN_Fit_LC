@@ -46,7 +46,8 @@ class Fitting:
             phasemax=LC_sel['phasemax'],
             nphasemin=LC_sel['nphasemin'],
             nphasemax=LC_sel['nphasemax'],
-            errmodrel=LC_sel['errmodrel'])
+            errmodrel=LC_sel['errmodrel'],
+            include_errmodel_in_lcerror=LC_sel['errmodinlcerr'])
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(

@@ -26,10 +26,11 @@ class Selection:
       min number of points with phase>=phase_max
     errmodrel: float,opt
       max errormodel relative error (default: -1.)
-
+    include_errmodel_in_lcerror: bool, opt
+      to include the error model in lc point errors
     """
 
-    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max, errmodrel=-1.):
+    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max, errmodrel=-1.,include_errmodel_in_lcerror=False):
 
         self.snrmin = snrmin
         self.nbef = nbef
@@ -40,7 +41,9 @@ class Selection:
         self.nphase_min = nphase_min
         self.nphase_max = nphase_max
         self.errmodrel = errmodrel
+        self.include_errmodel_in_lcerror = include_errmodel_in_lcerror
 
+        
     def select(self, lc):
         """
         Method to select LC according to criteria
@@ -58,6 +61,9 @@ class Selection:
 
         if lc is None or lc.meta['status'] != 1:
             return None
+
+        if not self.include_errmodel_in_lcerror:
+            lc['fluxerr'] = lc['fluxerr_photo']
 
         # some cleaning here
         idx = lc['flux'] > 0.
