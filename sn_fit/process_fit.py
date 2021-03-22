@@ -33,6 +33,7 @@ class Fitting:
         LC_sel = fitter_config['LCSelection']
 
         module = import_module(fitter_config['Fitter']['name'])
+        
         # fit instance
         self.fitter = module.Fit_LC(
             model=fitter_config['Fitter']['model'],

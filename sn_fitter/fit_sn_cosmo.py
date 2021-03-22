@@ -114,7 +114,7 @@ class Fit_LC(Selection):
             self.SN_fit_model.set(mwebv=meta['ebvofMW'])
 
             select = self.select(lc)
-
+            
             if select is not None:
                 try:
                     # fit here

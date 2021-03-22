@@ -72,14 +72,14 @@ class Fit_LC(Selection):
         """
 
         select = self.select(lc)
-
+        
         if select is None:
             return Table()
 
         sn = CalcSN(select, nBef=0, nAft=0,
                     nPhamin=0, nPhamax=0,
                     params=['x0', 'x1', 'daymax', 'color'])
-
+        
         # Make a dict of the fitted result (plus metadata)
         meta = lc.meta
         resa = self._transform(meta, sn.sn, sn.fitstatus)
@@ -88,7 +88,7 @@ class Fit_LC(Selection):
             select.meta['z'], select.meta['daymax'], select)
 
         resa.update(resb)
-
+        print('hhh pal',resa)
         output = Table(rows=[list(resa.values())], names=list(resa.keys()))
 
         return output

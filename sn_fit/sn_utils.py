@@ -79,7 +79,7 @@ class Selection:
         # select LC points according to SNRmin
         idx = selecta['snr'] >= self.snrmin
         selecta = selecta[idx]
-
+        
         if len(selecta) == 0:
             return None
 
@@ -124,7 +124,7 @@ class Selection:
 
             if nbands < self.nbands:
                 return None
-
+            
         return selecta
 
     def select_error_model(self, lc):
