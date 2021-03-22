@@ -30,7 +30,7 @@ class Selection:
       to include the error model in lc point errors
     """
 
-    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max, errmodrel=-1.,include_errmodel_in_lcerror=False):
+    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max, errmodrel=-1., include_errmodel_in_lcerror=False):
 
         self.snrmin = snrmin
         self.nbef = nbef
@@ -43,7 +43,6 @@ class Selection:
         self.errmodrel = errmodrel
         self.include_errmodel_in_lcerror = include_errmodel_in_lcerror
 
-        
     def select(self, lc):
         """
         Method to select LC according to criteria
@@ -76,11 +75,11 @@ class Selection:
         # remove points with too high errormodel
         if self.errmodrel > 0.:
             selecta = self.select_error_model(selecta)
-        
+
         # select LC points according to SNRmin
         idx = selecta['snr'] >= self.snrmin
         selecta = selecta[idx]
-        
+
         if len(selecta) == 0:
             return None
 
