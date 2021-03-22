@@ -42,9 +42,9 @@ class Fit_LC(Selection):
       to include the error model in lc point errors (default: False)
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1, errmodrel=-1.,include_errmodel_in_lcerror=False):
+    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1, errmodrel=-1., include_errmodel_in_lcerror=False):
         super().__init__(snrmin, nbef, naft, nbands,
-                         phasemin, phasemax, nphasemin, nphasemax, errmodrel,include_errmodel_in_lcerror)
+                         phasemin, phasemax, nphasemin, nphasemax, errmodrel, include_errmodel_in_lcerror)
 
         self.display = display
         #self.display = True
