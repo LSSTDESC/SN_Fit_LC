@@ -205,10 +205,10 @@ class Fit_LC(Selection):
         SNR = sqrt(sum(flux/fluxerr)**2)
 
         """
-        idx = lc['flux']/lc['fluxerr'] > 0.
+        idx = lc['flux']/lc['fluxerr_photo'] > 0.
         sel = lc[idx]
 
-        return np.sqrt(np.sum((sel['flux']/sel['fluxerr'])**2))
+        return np.sqrt(np.sum((sel['flux']/sel['fluxerr_photo'])**2))
 
     def calc(self, grp):
         """
