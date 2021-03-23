@@ -88,7 +88,6 @@ class Fit_LC(Selection):
             select.meta['z'], select.meta['daymax'], select)
 
         resa.update(resb)
-        print('hhh pal',resa)
         output = Table(rows=[list(resa.values())], names=list(resa.keys()))
 
         return output
