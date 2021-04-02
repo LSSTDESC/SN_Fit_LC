@@ -87,11 +87,24 @@ class Selection:
         if 'phase' not in selecta.columns:
             selecta['phase'] = (
                 selecta['time']-selecta.meta['daymax'])/(1.+selecta.meta['z'])
-        nlc_bef = len(selecta[selecta['phase'] <= 0])
-        nlc_aft = len(selecta[selecta['phase'] > 0])
+
+        selecta['nnight'] = selecta['time'].astype(int)
+
+        idx = selecta['phase'] <= 0
+        ssel = selecta[idx]
+        nlc_bef = len(np.unique(ssel['nnight']))
+
+        idx = selecta['phase'] > 0
+        ssel = selecta[idx]
+        nlc_aft = len(np.unique(ssel['nnight']))
+
+        nlc_bef_prev = len(selecta[selecta['phase'] <= 0])
+        nlc_aft_prev = len(selecta[selecta['phase'] > 0])
+
+        #print(nlc_bef, nlc_bef_prev, nlc_aft, nlc_aft_prev)
 
         # check the total number of LC points here
-        assert((nlc_bef+nlc_aft) == len(selecta))
+        #assert((nlc_bef+nlc_aft) == len(np.unique(selecta['nnight'])))
 
         if nlc_bef < self.nbef or nlc_aft < self.naft:
             return None
