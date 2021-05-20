@@ -33,7 +33,7 @@ class Fitting:
         LC_sel = fitter_config['LCSelection']
 
         module = import_module(fitter_config['Fitter']['name'])
-        
+
         # fit instance
         self.fitter = module.Fit_LC(
             model=fitter_config['Fitter']['model'],
@@ -83,7 +83,7 @@ class Fitting:
         resfit = self.fitter(lc)
 
         # estimate mbcov if requested
-        if self.mbcalc:
+        if self.mbcalc and resfit:
             idx = resfit['fitstatus'] == 'fitok'
             if len(resfit[idx]) > 0:
                 covDict = self.mbcovCalc(resfit)
