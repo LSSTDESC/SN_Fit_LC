@@ -170,8 +170,19 @@ class Fitting:
         cov[1, 0] = cov[0, 1]
         cov[2, 0] = cov[0, 2]
 
-        params = dict(zip(['x0', 'x1', 'c'], [vals['x0_fit'].data,
-                                              vals['x1_fit'].data, vals['color_fit'].data]))
+        x0f = 'x0_fit'
+        x1f = 'x1_fit'
+        colorf = 'color_fit'
+
+        """
+        if vals['x0_fit'] <= -90.:
+            # this is probably fast fitter -> take simulated values as input
+            x0f = 'x0'
+            x1f = 'x1'
+            colorf = 'color'
+        """
+        params = dict(zip(['x0', 'x1', 'c'], [vals[x0f].data,
+                                              vals[x1f].data, vals[colorf].data]))
 
         resu = self.covmb.mbCovar(params, cov, ['x0', 'x1', 'c'])
         sigmu_sq = resu['Cov_mbmb']
@@ -185,5 +196,6 @@ class Fitting:
             sigmu = np.sqrt(sigmu_sq)
 
         resu['sigma_mu'] = sigmu.item()
-
+        resu['alpha'] = self.alpha
+        resu['beta'] = self.beta
         return resu
