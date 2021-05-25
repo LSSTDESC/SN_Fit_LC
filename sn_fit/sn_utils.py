@@ -189,7 +189,7 @@ class Selection:
         b: str
           band to consider
         zref: float
-           redshift below wiwh the cut wwill be applied
+           redshift below which the cut will be applied
 
         Returns
         ----------
@@ -202,7 +202,8 @@ class Selection:
             return Table()
 
         if sel.meta['z'] >= zref:
-            idb = sel['fluxerr_model']/sel['flux'] <= self.errmodrel
+            idb = sel['fluxerr_model'] >= 0.
+            idb &= sel['fluxerr_model']/sel['flux'] <= self.errmodrel
             selb = sel[idb]
             return selb
 
