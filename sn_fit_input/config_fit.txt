@@ -40,7 +40,7 @@ OutputFit save 1 int #output save file
 ##Multiprocessing
 
 MultiprocessingFit nproc 1 int #multiprocessing number of procs
-MultiprocessingFit nmaxBatch 100 int #max number of LC fit for a sub-proc
+MultiprocessingFit nmaxBatch 50 int #max number of LC fit for a sub-proc
 MultiprocessingFit timeout 500. float #time out in case of crash
 
 #mbcov
