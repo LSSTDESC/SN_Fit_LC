@@ -130,6 +130,11 @@ class Fit_LC(Selection):
                         vparam_names = res['vparam_names']
                         covariance = res['covariance']
                         fitstatus = 'fitok'
+                        """
+                        print('fit results',res_param_names)
+                        print(res_params_values)
+                        print(covariance)
+                        """
                     else:
                         fitstatus = 'badfit'
                 except (RuntimeError, TypeError, NameError):
@@ -168,6 +173,10 @@ class Fit_LC(Selection):
 
         output = Table(rows=[list(resa.values())], names=list(resa.keys()))
 
+        """
+        for nn in output.columns:
+            print('after transform',nn, output[nn].data)
+        """
         return output
 
     def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus):
