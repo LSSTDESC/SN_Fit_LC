@@ -79,6 +79,8 @@ class Fitting:
 
         """
 
+        if 'filter' in lc.columns:
+            lc.remove_columns(['filter'])
         # LC fit here
         resfit = self.fitter(lc)
 
