@@ -42,7 +42,7 @@ class Fit_LC(Selection):
       to include the error model in lc point errors (default: False)
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1, errmodrel=-1., include_errmodel_in_lcerror=False):
+    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1, errmodrel=-1., include_errmodel_in_lcerror=False, vparam_names=['z', 't0', 'x0', 'x1', 'c']):
         super().__init__(snrmin, nbef, naft, nbands,
                          phasemin, phasemax, nphasemin, nphasemax, errmodrel, include_errmodel_in_lcerror)
 
@@ -73,6 +73,8 @@ class Fit_LC(Selection):
                                           effect_names=['host', 'mw'],
                                           effect_frames=['rest', 'obs'])
 
+        # parameters to fit
+        self.vparam_names = vparam_names
         # name parameters
         self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c', 'hostebv', 'hostr_v', 'mwebv', 'mwr_v'], [
                              'z', 't0', 'x0', 'x1', 'color', 'hostebv', 'hostr_v', 'mwebv', 'mwr_v']))
@@ -101,6 +103,8 @@ class Fit_LC(Selection):
         mbfit = -1.
         z = -1.
         fitstatus = 'nofit'
+        chisq = 99999
+        ndof = -1
         meta = None
         if lc is not None:
             # get metadata
@@ -109,18 +113,19 @@ class Fit_LC(Selection):
             # set redshift for the fit
             z = meta['z']
             daymax = meta['daymax']
-            self.SN_fit_model.set(z=z)
+            if 'z' not in self.vparam_names:
+                self.SN_fit_model.set(z=z)
             # apply extinction here
             self.SN_fit_model.set(mwebv=meta['ebvofMW'])
 
             select = self.select(lc)
-            
+
             if select is not None:
                 try:
                     # fit here
                     selfit = select.copy()
-                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=[
-                                                       't0', 'x0', 'x1', 'c'], bounds={'z': (z-0.01, z+0.01)}, minsnr=0.0)
+                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=self.vparam_names, bounds={
+                                                       'z': (z-0.01, z+0.01)}, minsnr=0.0)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
@@ -130,6 +135,8 @@ class Fit_LC(Selection):
                         vparam_names = res['vparam_names']
                         covariance = res['covariance']
                         fitstatus = 'fitok'
+                        chisq = res.chisq
+                        ndof = res.ndof
                         """
                         print('fit results',res_param_names)
                         print(res_params_values)
@@ -158,12 +165,15 @@ class Fit_LC(Selection):
         if self.display and len(select) >= 5:
             print(select['band', 'time', 'flux', 'fluxerr'])
             import pylab as plt
+            """
             sncosmo.plot_lc(select, model=fitted_model,
                             color='r', pulls=False, errors=res.errors)
+            """
+            sncosmo.plot_lc(select, model=fitted_model, errors=res.errors)
             plt.show()
 
         resa = self._transform(meta, res_param_names, list(
-            res_params_values), vparam_names, covariance, mbfit, fitstatus)
+            res_params_values), vparam_names, covariance, mbfit, fitstatus, chisq, ndof)
 
         """
         resb = self._get_infos(
@@ -179,7 +189,7 @@ class Fit_LC(Selection):
         """
         return output
 
-    def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus):
+    def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus, chisq, ndof):
         """
         Method to transform input data to a coherent dictionary
 
@@ -199,6 +209,10 @@ class Fit_LC(Selection):
           mbfit value
         fitstatus: str
            status of the fit
+        chisq: float
+          chi2 value of the fit
+        ndof: int
+          number of degree of freedom of the fit
 
         Returns
         ----------
@@ -208,7 +222,7 @@ class Fit_LC(Selection):
            index_hdf5, pixDec, pixID, pixRa, season, survey_area, x0, x1, z
         - result of the fit:
           z_fit, t0_fit, x0_fit, x1_fit, color_fit, Cov_t0t0, Cov_t0x0, Cov_t0x1, Cov_t0color, Cov_x0x0,
-         Cov_x0x1, Cov_x0color, Cov_x1x1, Cov_x1color, Cov_colorcolor, mbfit, fitstatus
+         Cov_x0x1, Cov_x0color, Cov_x1x1, Cov_x1color, Cov_colorcolor, mbfit, fitstatus,chisq,ndof
         """
         res = {}
         for key, value in meta.items():
@@ -229,6 +243,9 @@ class Fit_LC(Selection):
 
         res['mbfit'] = mbfit
         res['fitstatus'] = fitstatus
+        res['chisq'] = chisq
+        res['ndof'] = ndof
+
         return res
 
     def _get_infos(self, z, T0, lc):
