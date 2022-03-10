@@ -125,7 +125,7 @@ class Fit_LC(Selection):
                     # fit here
                     selfit = select.copy()
                     res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=self.vparam_names, bounds={
-                                                       'z': (z-0.01, z+0.01)}, minsnr=0.0)
+                                                       'z': (z-0.01, z+0.01)}, minsnr=self.snrmin)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
