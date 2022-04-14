@@ -169,7 +169,10 @@ class Fit_LC(Selection):
             sncosmo.plot_lc(select, model=fitted_model,
                             color='r', pulls=False, errors=res.errors)
             """
-            sncosmo.plot_lc(select, model=fitted_model, errors=res.errors)
+            if fitstatus == 'fitok':
+                sncosmo.plot_lc(select, model=fitted_model, errors=res.errors)
+            else:
+                sncosmo.plot_lc(select)
             plt.show()
 
         resa = self._transform(meta, res_param_names, list(
