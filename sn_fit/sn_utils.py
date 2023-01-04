@@ -10,38 +10,12 @@ class Selection:
     --------------
     snrmin: float
        min SNR of LC points to be considered
-    nbef: float
-       number of LC points (SNR>=snrmin) before max
-    naft: float
-       number of LC points (SNR>=snrmin) after max
-    nbands: int
-      number of bands with at least two points with SNR>=5.
-    phase_min: float
-      min phase for nphase_min estimator
-    phase_max: float
-      max phase for nphase_max estimator
-    nphase_min: int
-      min number of points with phase<=phase_min
-    nphase_max: int
-      min number of points with phase>=phase_max
-    errmodrel: float,opt
-      max errormodel relative error (default: -1.)
-    include_errmodel_in_lcerror: bool, opt
-      to include the error model in lc point errors
+   
     """
 
-    def __init__(self, snrmin, nbef, naft, nbands, phase_min, phase_max, nphase_min, nphase_max, errmodrel=-1., include_errmodel_in_lcerror=False):
+    def __init__(self, snrmin):
 
         self.snrmin = snrmin
-        self.nbef = nbef
-        self.naft = naft
-        self.nbands = nbands
-        self.phase_min = phase_min
-        self.phase_max = phase_max
-        self.nphase_min = nphase_min
-        self.nphase_max = nphase_max
-        self.errmodrel = errmodrel
-        self.include_errmodel_in_lcerror = include_errmodel_in_lcerror
 
     def select(self, lc):
         """
@@ -61,9 +35,10 @@ class Selection:
         if lc is None or lc.meta['status'] != 1:
             return None
 
+        """
         if not self.include_errmodel_in_lcerror:
             lc['fluxerr'] = lc['fluxerr_photo']
-
+        """
         # some cleaning here
         idx = lc['flux'] > 0.
         idx &= lc['fluxerr'] > 0.
@@ -72,9 +47,6 @@ class Selection:
         # add snr
         selecta['snr'] = selecta['flux']/selecta['fluxerr']
 
-        # remove points with too high errormodel
-        if self.errmodrel > 0.:
-            selecta = self.select_error_model(selecta)
 
         # select LC points according to SNRmin
         idx = selecta['snr'] >= self.snrmin
@@ -82,61 +54,6 @@ class Selection:
 
         if len(selecta) == 0:
             return None
-
-        # number of points before/after
-        if 'phase' not in selecta.columns:
-            selecta['phase'] = (
-                selecta['time']-selecta.meta['daymax'])/(1.+selecta.meta['z'])
-
-        selecta['nnight'] = selecta['time'].astype(int)
-
-        idx = selecta['phase'] <= 0
-        ssel = selecta[idx]
-        nlc_bef = len(np.unique(ssel['nnight']))
-
-        idx = selecta['phase'] > 0
-        ssel = selecta[idx]
-        nlc_aft = len(np.unique(ssel['nnight']))
-
-        nlc_bef_prev = len(selecta[selecta['phase'] <= 0])
-        nlc_aft_prev = len(selecta[selecta['phase'] > 0])
-
-        #print(nlc_bef, nlc_bef_prev, nlc_aft, nlc_aft_prev)
-
-        # check the total number of LC points here
-        #assert((nlc_bef+nlc_aft) == len(np.unique(selecta['nnight'])))
-
-        if nlc_bef < self.nbef or nlc_aft < self.naft:
-            return None
-
-        # phase min and phase max sel
-        idd = selecta['phase'] <= self.phase_min
-        nph_min = len(selecta[idd])
-        idd = selecta['phase'] >= self.phase_max
-        nph_max = len(selecta[idd])
-
-        if nph_min < self.nphase_min or nph_max < self.nphase_max:
-            return None
-
-        if self.nbands > 0:
-            # select the number of bands to be used
-            selb = Table()
-            for b in np.unique(selecta['band']):
-                io = selecta['band'] == b
-                selo = selecta[io]
-                ibo = selo['snr'] >= 5.
-                # print(b,len(selo[ibo]))
-                if len(selo[ibo]) >= 2.:
-                    selb = vstack([selb, selo])
-
-            selecta = Table(selb)
-
-            nbands = 0
-            if len(selecta) > 0.:
-                nbands = len(np.unique(selecta['band']))
-
-            if nbands < self.nbands:
-                return None
 
         return selecta
 

@@ -20,15 +20,6 @@ Fitter version 1.0 str #version
 
 ## LC selection
 LCSelection snrmin 1. float #min SNR for LC points
-LCSelection nbef 4 int #number of LC points before max
-LCSelection naft 10 int #number of LC points after max
-LCSelection nbands 3 int #min number of bands to be used for the fit
-LCSelection phasemin -5. float #min phase for selection
-LCSelection phasemax 20. float #max phase for selection
-LCSelection nphasemin 1 int #number of LC points with phase<=phasemin
-LCSelection nphasemax 1 int #number of LC points with phase>=phasemax
-LCSelection errmodrel -1.0 float #max error model relative value for LC points
-LCSelection errmodinlcerr 0 int #to include error model in lc error
 
 ## Display
 Display 0 int #to display fit result 'on-line'

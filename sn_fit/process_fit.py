@@ -39,16 +39,7 @@ class Fitting:
             model=fitter_config['Fitter']['model'],
             version=fitter_config['Fitter']['version'],
             telescope=telescope, display=display_lc,
-            snrmin=LC_sel['snrmin'],
-            nbef=LC_sel['nbef'],
-            naft=LC_sel['naft'],
-            nbands=LC_sel['nbands'],
-            phasemin=LC_sel['phasemin'],
-            phasemax=LC_sel['phasemax'],
-            nphasemin=LC_sel['nphasemin'],
-            nphasemax=LC_sel['nphasemax'],
-            errmodrel=LC_sel['errmodrel'],
-            include_errmodel_in_lcerror=LC_sel['errmodinlcerr'])
+            snrmin=LC_sel['snrmin'])
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(
