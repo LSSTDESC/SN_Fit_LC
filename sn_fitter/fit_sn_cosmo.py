@@ -4,7 +4,8 @@ from astropy import (cosmology, units as u, constants as const)
 import pandas as pd
 from astropy.table import Table
 from sn_fit.sn_utils import Selection
-
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 class Fit_LC(Selection):
     """
@@ -27,7 +28,7 @@ class Fit_LC(Selection):
 
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=1, vparam_names=['z', 't0', 'x0', 'x1', 'c']):
+    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=1, vparam_names=['t0', 'x0', 'x1', 'c']):
         super().__init__(snrmin)
 
         self.display = display
@@ -97,8 +98,10 @@ class Fit_LC(Selection):
             # set redshift for the fit
             z = meta['z']
             daymax = meta['daymax']
+            bounds={'z': (z-0.00001, z+0.00001),'x1':(-3.0,3.0),'c':(-0.3,0.3)}
             if 'z' not in self.vparam_names:
                 self.SN_fit_model.set(z=z)
+                bounds = {'x1':(-3.0,3.0),'c':(-0.3,0.3)}
             # apply extinction here
             self.SN_fit_model.set(mwebv=meta['ebvofMW'])
 
@@ -108,8 +111,7 @@ class Fit_LC(Selection):
                 try:
                     # fit here
                     selfit = select.copy()
-                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=self.vparam_names, bounds={
-                                                       'z': (z-0.00001, z+0.00001)}, minsnr=self.snrmin)
+                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=self.vparam_names, bounds=bounds, minsnr=self.snrmin)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
@@ -127,8 +129,10 @@ class Fit_LC(Selection):
                         print(covariance)
                         """
                     else:
+                        print('badfit',res)
                         fitstatus = 'badfit'
-                except (RuntimeError, TypeError, NameError):
+                except (RuntimeError, TypeError, NameError) as err:
+                    # print('fit pb',err)
                     fitstatus = 'crash'
                     # set the simulation values here
                     if meta['sn_type'] == 'SN_Ia':

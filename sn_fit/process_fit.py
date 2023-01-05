@@ -35,11 +35,12 @@ class Fitting:
         module = import_module(fitter_config['Fitter']['name'])
 
         # fit instance
+        par_names = fitter_config['Fitter']['parnames'].split(',')
         self.fitter = module.Fit_LC(
             model=fitter_config['Fitter']['model'],
             version=fitter_config['Fitter']['version'],
             telescope=telescope, display=display_lc,
-            snrmin=LC_sel['snrmin'])
+            snrmin=LC_sel['snrmin'], vparam_names=par_names)
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(
