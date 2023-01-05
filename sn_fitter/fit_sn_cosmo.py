@@ -129,7 +129,7 @@ class Fit_LC(Selection):
                         print(covariance)
                         """
                     else:
-                        print('badfit',res)
+                        #print('badfit',res)
                         fitstatus = 'badfit'
                 except (RuntimeError, TypeError, NameError) as err:
                     # print('fit pb',err)
