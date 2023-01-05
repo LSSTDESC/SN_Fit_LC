@@ -25,27 +25,11 @@ class Fit_LC(Selection):
       bands to consider (default: ugrizy)
     snrmin: float, opt
       min SNR for considered LC points for the fit (default: 5)
-    nbef: int, opt
-      minimal number of LC points before max (default: 4)
-    naft: int, opt
-      minimal number of LC points after max (default: 5) 
-    phasemin: float, opt
-      min phase for LC selection (default: -5)
-    phasemax: float, opt
-      max phase for LC selection (default: 20.)
-    nphasemin: int, opt
-      number of LC points with phase <= phasemin (default: 1)
-    nphasemax: int, opt
-      number of LC points with phase>= phasemax (default: 1)
-     errmodrel: float, opt
-      max error model relative value (default: -1.)   
-    include_errmodel_in_lcerror: bool, opt
-      to include the error model in lc point errors (default: False)
+   
     """
 
-    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy', snrmin=5., nbef=4, naft=5, nbands=3, phasemin=-5, phasemax=20, nphasemin=1, nphasemax=1, errmodrel=-1.,include_errmodel_in_lcerror=False):
-        super().__init__(snrmin, nbef, naft, nbands,
-                         phasemin, phasemax, nphasemin, nphasemax, errmodrel,include_errmodel_in_lcerror)
+    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy', snrmin=1.,**kwargs):
+        super().__init__(snrmin)
 
         self.display = display
         self.bands = bands
@@ -70,7 +54,7 @@ class Fit_LC(Selection):
         -----------
 
         """
-
+        
         select = self.select(lc)
         
         if select is None:
@@ -84,10 +68,12 @@ class Fit_LC(Selection):
         meta = lc.meta
         resa = self._transform(meta, sn.sn, sn.fitstatus)
 
+        """
         resb = self._get_infos(
             select.meta['z'], select.meta['daymax'], select)
 
         resa.update(resb)
+        """
         output = Table(rows=[list(resa.values())], names=list(resa.keys()))
 
         return output
