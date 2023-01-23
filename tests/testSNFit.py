@@ -27,7 +27,8 @@ def getRefDir(dirname):
 
     if not os.path.exists(dirname):
         print('wget path:', fullname)
-        cmd = 'wget --no-verbose --recursive {} --directory-prefix={} --no-clobber --no-parent -nH --cut-dirs=3 -R \'index.html*\''.format(
+        cmd = 'wget --no-verbose --recursive {} --directory-prefix={} \
+        --no-clobber --no-parent -nH --cut-dirs=3 -R \'index.html*\''.format(
             fullname+'/', dirname)
         os.system(cmd)
 
@@ -42,7 +43,8 @@ class TestSNFit(unittest.TestCase):
 
         # grab LCs
         #prodid = 'sncosmo_Fake_Fake_DESC_seas_-1_-2.0_0.2.hdf5'
-        prodid = 'DD_descddf_v1.4_10yrs_COSMOS_0'
+        # prodid = 'DD_descddf_v1.4_10yrs_COSMOS_0'
+        prodid = 'Fake_full_0'
         simu_name = 'Simu_{}.hdf5'.format(prodid)
         lc_name = 'LC_{}.hdf5'.format(prodid)
 
@@ -75,51 +77,54 @@ class TestSNFit(unittest.TestCase):
         for i, key in enumerate(f.keys()):
             simul = Table.read(simu_name, path=key)
 
-        print('number of LC to fit', len(simul))
+        print('number of LC to fit', len(simul), np.unique(simul['z']))
         simul['z'] = np.round(simul['z'], 2)
-        ll = np.round(list(np.arange(0.1, 0.9, 0.1)), 2)
-        simul = simul[np.in1d(simul['z'], ll)]
+        #ll = np.round(list(np.arange(0.1, 0.9, 0.1)), 2)
+        #simul = simul[np.in1d(simul['z'], ll)]
 
+        print('after sel', len(simul))
         res = Table()
         for simu in simul:
             lc = None
             lc = Table.read(lc_name, path='lc_{}'.format(simu['index_hdf5']))
             lc.convert_bytestring_to_unicode()
-            #print('here lc',lc)
+            print('lc to fit', lc)
             resfit = fit(lc)
             res = vstack([res, resfit])
 
         idx = res['z'] < 0.8
         sel = res[idx]
 
-        
-        ref_fit =  'data_tests/ref_fit_{}.hdf5'.format(prodid)
+        ref_fit = 'data_tests/ref_fit_{}.hdf5'.format(prodid)
 
+        print('finally', ref_fit)
         # save the reference file if it does not exist
         if not os.path.exists(ref_fit):
-            sel.write(ref_fit,'lc_fits', append=True, compression=True)
+            sel.write(ref_fit, 'lc_fits', append=True, compression=True)
 
         # load fit reference values
-        fit_lc_ref = Table.read(ref_fit,path='lc_fits')
-        
+        fit_lc_ref = Table.read(ref_fit, path='lc_fits')
+
         keychecks = ['z', 'Cov_colorcolor', 'mbfit', 'mb_recalc', 'sigma_mu']
 
         for key in keychecks:
-            assert(np.isclose(fit_lc_ref[key].tolist(), sel[key].tolist()).all())
+            assert(np.isclose(
+                fit_lc_ref[key].tolist(), sel[key].tolist()).all())
 
         # cleaning directory
         for fi in [simu_name, lc_name]:
             if os.path.isfile(fi):
                 os.system('rm {}'.format(fi))
-        for ddir in ['SALT2_Files','Output_Fit']:
+        for ddir in ['SALT2_Files', 'Output_Fit']:
             if os.path.isdir(ddir):
                 os.system('rm -rf {}'.format(ddir))
 
 #fit_snfit = TestSNFit
 # fit_sncosmo = TestSNFitcosmo
 
+
 if __name__ == "__main__":
-    #lsst.utils.tests.init()
+    # lsst.utils.tests.init()
     unittest.main(verbosity=5)
 
 

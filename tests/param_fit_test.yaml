@@ -2,28 +2,22 @@ Display: 0
 Fitter:
   model: salt2-extended
   name: sn_fitter.fit_sn_cosmo
+  parnames: t0,x1,c,x0
   version: '1.0'
-Instrument:
-  aerosol: 0
-  airmass: 1.2
-  atmos: 1
-  atmosDir: THROUGHPUTS_DIR
-  name: LSST
-  throughputDir: LSST_THROUGHPUTS_BASELINE
 LCSelection:
-  naft: 10
-  nbef: 4
   snrmin: 1.0
-Multiprocessing:
+MultiprocessingFit:
+  nmaxBatch: 50
   nproc: 1
-Output:
+  timeout: 500.0
+OutputFit:
   directory: Output_Fit
   save: 1
-ProductionID: prodid
+ProductionIDFit: prodid
 Simulations:
   dirname: dbDir
   prodid: prodid
-WebPath: https://me.lsst.eu/gris/DESC_SN_pipeline
+WebPathFit: https://me.lsst.eu/gris/DESC_SN_pipeline
 mbcov:
   directory: SALT2_Files
   estimate: 0
