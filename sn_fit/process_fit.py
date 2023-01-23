@@ -1,4 +1,3 @@
-#from sn_tools.sn_telescope import Telescope
 from importlib import import_module
 import os
 import h5py
@@ -6,7 +5,7 @@ import h5py
 
 class Fitting:
     """
-    class to perform fits 
+    class to perform fits
 
     Parameters
     ----------------
@@ -178,7 +177,8 @@ class Fitting:
             colorf = 'color'
         """
         params = dict(zip(['x0', 'x1', 'c'], [vals[x0f].data,
-                                              vals[x1f].data, vals[colorf].data]))
+                                              vals[x1f].data,
+                                              vals[colorf].data]))
 
         resu = self.covmb.mbCovar(params, cov, ['x0', 'x1', 'c'])
         sigmu_sq = resu['Cov_mbmb']
