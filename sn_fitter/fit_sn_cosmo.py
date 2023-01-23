@@ -1,11 +1,11 @@
 import sncosmo
 import numpy as np
-from astropy import (cosmology, units as u, constants as const)
 import pandas as pd
 from astropy.table import Table
 from sn_fit.sn_utils import Selection
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
+
 
 class Fit_LC(Selection):
     """
@@ -17,8 +17,6 @@ class Fit_LC(Selection):
       model to use for the fit (default: salt2-extended)
     version: float, opt
        model version (default: 1.0)
-    telescope: sn_tools.telescope,opt
-      telescope model (default: None)
     display: bool, opt
       to display the fit online (default: False)
     bands: str, opt
@@ -28,23 +26,30 @@ class Fit_LC(Selection):
 
     """
 
-    def __init__(self, model='salt2-extended', version=1.0, telescope=None, display=False, bands='ugrizy', snrmin=1, vparam_names=['t0', 'x0', 'x1', 'c']):
+    def __init__(self, model='salt2-extended', version=1.0,
+                 display=False, bands='ugrizy',
+                 snrmin=1, vparam_names=['t0', 'x0', 'x1', 'c']):
         super().__init__(snrmin)
 
         self.display = display
-        #self.display = True
+        # self.display = True
         self.bands = bands
 
         # get the bands for sncosmo registration - with and without airmass
-
+        """
         for band in bands:
             if telescope.airmass > 0:
                 band = sncosmo.Bandpass(
-                    telescope.atmosphere[band].wavelen, telescope.atmosphere[band].sb, name='LSST::'+band, wave_unit=u.nm)
+                    telescope.atmosphere[band].wavelen,
+                    telescope.atmosphere[band].sb,
+                    name='LSST::'+band, wave_unit=u.nm)
             else:
                 band = sncosmo.Bandpass(
-                    telescope.system[band].wavelen, telescope.system[band].sb, name='LSST::'+band, wave_unit=u.nm)
+                    telescope.system[band].wavelen,
+                    telescope.system[band].sb,
+                    name='LSST::'+band, wave_unit=u.nm)
             sncosmo.registry.register(band, force=True)
+        """
 
         # get the source
         source = sncosmo.get_source(model, version=str(version))
@@ -52,7 +57,7 @@ class Fit_LC(Selection):
         dustmap = sncosmo.OD94Dust()
 
         # sn_fit_model instance
-        #self.SN_fit_model = sncosmo.Model(source=source)
+        # self.SN_fit_model = sncosmo.Model(source=source)
         self.SN_fit_model = sncosmo.Model(source=source,
                                           effects=[dustmap, dustmap],
                                           effect_names=['host', 'mw'],
@@ -61,8 +66,10 @@ class Fit_LC(Selection):
         # parameters to fit
         self.vparam_names = vparam_names
         # name parameters
-        self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c', 'hostebv', 'hostr_v', 'mwebv', 'mwr_v'], [
-                             'z', 't0', 'x0', 'x1', 'color', 'hostebv', 'hostr_v', 'mwebv', 'mwr_v']))
+        self.parNames = dict(zip(['z', 't0', 'x0', 'x1', 'c',
+                                  'hostebv', 'hostr_v', 'mwebv', 'mwr_v'],
+                                 ['z', 't0', 'x0', 'x1', 'color', 'hostebv',
+                                  'hostr_v', 'mwebv', 'mwr_v']))
 
     def __call__(self, lc):
         """
@@ -97,11 +104,12 @@ class Fit_LC(Selection):
 
             # set redshift for the fit
             z = meta['z']
-            daymax = meta['daymax']
-            bounds={'z': (z-0.00001, z+0.00001),'x1':(-3.0,3.0),'c':(-0.3,0.3)}
+            #daymax = meta['daymax']
+            bounds = {'z': (z-0.00001, z+0.00001),
+                      'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
             if 'z' not in self.vparam_names:
                 self.SN_fit_model.set(z=z)
-                bounds = {'x1':(-3.0,3.0),'c':(-0.3,0.3)}
+                bounds = {'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
             # apply extinction here
             self.SN_fit_model.set(mwebv=meta['ebvofMW'])
 
@@ -111,7 +119,10 @@ class Fit_LC(Selection):
                 try:
                     # fit here
                     selfit = select.copy()
-                    res, fitted_model = sncosmo.fit_lc(selfit, model=self.SN_fit_model, vparam_names=self.vparam_names, bounds=bounds, minsnr=self.snrmin)
+                    res, fitted_model = sncosmo.fit_lc(
+                        selfit, model=self.SN_fit_model,
+                        vparam_names=self.vparam_names,
+                        bounds=bounds, minsnr=self.snrmin)
                     # get parameters
                     if res['success']:
                         mbfit = fitted_model._source.peakmag(
@@ -129,15 +140,16 @@ class Fit_LC(Selection):
                         print(covariance)
                         """
                     else:
-                        #print('badfit',res)
+                        # print('badfit',res)
                         fitstatus = 'badfit'
                 except (RuntimeError, TypeError, NameError) as err:
-                    # print('fit pb',err)
+                    print('fit pb', err)
                     fitstatus = 'crash'
                     # set the simulation values here
                     if meta['sn_type'] == 'SN_Ia':
                         res_params_values = np.array(
-                            [meta['z'], meta['daymax'], meta['x0'], meta['x1'], meta['color']])
+                            [meta['z'], meta['daymax'], meta['x0'],
+                             meta['x1'], meta['color']])
                     else:
                         res_params_values = np.array(
                             [meta['z'], meta['daymax'], -1.0, -1.0, -1.0])
@@ -164,7 +176,8 @@ class Fit_LC(Selection):
             plt.show()
 
         resa = self._transform(meta, res_param_names, list(
-            res_params_values), vparam_names, covariance, mbfit, fitstatus, chisq, ndof)
+            res_params_values), vparam_names, covariance, mbfit, fitstatus,
+            chisq, ndof)
 
         """
         resb = self._get_infos(
@@ -180,7 +193,8 @@ class Fit_LC(Selection):
         """
         return output
 
-    def _transform(self, meta, par_names, params, vpar_names, covmat, mbfit, fitstatus, chisq, ndof):
+    def _transform(self, meta, par_names, params, vpar_names, covmat,
+                   mbfit, fitstatus, chisq, ndof):
         """
         Method to transform input data to a coherent dictionary
 
@@ -209,11 +223,14 @@ class Fit_LC(Selection):
         ----------
         dict with the following keys
         - SN parameters (from metadata):
-           Dec, Ra, SNID, color, dL, daymax, epsilon_color, epsilon_daymax, epsilon_x0, epsilon_x1,
+           Dec, Ra, SNID, color, dL, daymax, epsilon_color, epsilon_daymax,
+           epsilon_x0, epsilon_x1,
            index_hdf5, pixDec, pixID, pixRa, season, survey_area, x0, x1, z
         - result of the fit:
-          z_fit, t0_fit, x0_fit, x1_fit, color_fit, Cov_t0t0, Cov_t0x0, Cov_t0x1, Cov_t0color, Cov_x0x0,
-         Cov_x0x1, Cov_x0color, Cov_x1x1, Cov_x1color, Cov_colorcolor, mbfit, fitstatus,chisq,ndof
+          z_fit, t0_fit, x0_fit, x1_fit, color_fit, Cov_t0t0, Cov_t0x0,
+          Cov_t0x1, Cov_t0color, Cov_x0x0,
+         Cov_x0x1, Cov_x0color, Cov_x1x1, Cov_x1color, Cov_colorcolor,
+         mbfit, fitstatus,chisq,ndof
         """
         res = {}
         for key, value in meta.items():
@@ -347,6 +364,7 @@ class Fit_LC(Selection):
             color = 0.
             x0 = 0.
         daymax = table.meta['daymax']
+        z = table.meta['z']
 
         print('plotting')
         model = sncosmo.Model('salt2')

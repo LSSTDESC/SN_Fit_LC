@@ -1,6 +1,4 @@
-import sncosmo
 import numpy as np
-from astropy import (cosmology, units as u, constants as const)
 import pandas as pd
 from astropy.table import Table
 from sn_tools.sn_calcFast import CalcSN
@@ -17,18 +15,17 @@ class Fit_LC(Selection):
       model to use for the fit (default: None)
     version: float, opt
        model version (default: -1.0)
-    telescope: sn_tools.telescope,opt
-      telescope model (default: None)
     display: bool, opt
       to display the fit online (default: False)
     bands: str, opt
       bands to consider (default: ugrizy)
     snrmin: float, opt
       min SNR for considered LC points for the fit (default: 5)
-   
+
     """
 
-    def __init__(self, model=None, version=-1.0, telescope=None, display=False, bands='ugrizy', snrmin=1.,**kwargs):
+    def __init__(self, model=None, version=-1.0,
+                 display=False, bands='ugrizy', snrmin=1., **kwargs):
         super().__init__(snrmin)
 
         self.display = display
@@ -54,16 +51,16 @@ class Fit_LC(Selection):
         -----------
 
         """
-        
+
         select = self.select(lc)
-        
+
         if select is None:
             return Table()
 
         sn = CalcSN(select, nBef=0, nAft=0,
                     nPhamin=0, nPhamax=0,
                     params=['x0', 'x1', 'daymax', 'color'])
-        
+
         # Make a dict of the fitted result (plus metadata)
         meta = lc.meta
         resa = self._transform(meta, sn.sn, sn.fitstatus)
@@ -103,11 +100,14 @@ class Fit_LC(Selection):
         ----------
         dict with the following keys
         - SN parameters(from metadata):
-           Dec, Ra, SNID, color, dL, daymax, epsilon_color, epsilon_daymax, epsilon_x0, epsilon_x1,
+           Dec, Ra, SNID, color, dL, daymax, epsilon_color, epsilon_daymax,
+           epsilon_x0, epsilon_x1,
            index_hdf5, pixDec, pixID, pixRa, season, survey_area, x0, x1, z
         - result of the fit:
-          z_fit, t0_fit, x0_fit, x1_fit, color_fit, Cov_t0t0, Cov_t0x0, Cov_t0x1, Cov_t0color, Cov_x0x0,
-         Cov_x0x1, Cov_x0color, Cov_x1x1, Cov_x1color, Cov_colorcolor, mbfit, fitstatus
+          z_fit, t0_fit, x0_fit, x1_fit, color_fit, Cov_t0t0, Cov_t0x0,
+          Cov_t0x1, Cov_t0color, Cov_x0x0,
+         Cov_x0x1, Cov_x0color, Cov_x1x1, Cov_x1color, Cov_colorcolor,
+         mbfit, fitstatus
         """
         snres = Table(sn)
 

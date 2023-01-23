@@ -1,5 +1,4 @@
-from sn_tools.sn_telescope import Telescope
-from astropy.table import Table, vstack
+#from sn_tools.sn_telescope import Telescope
 from importlib import import_module
 import os
 import h5py
@@ -19,6 +18,7 @@ class Fitting:
     def __init__(self, fitter_config, covmb=None):
 
         # load instrument
+        """
         tel_par = fitter_config['InstrumentFit']
         telescope = Telescope(name=tel_par['name'],
                               throughput_dir=tel_par['throughputDir'],
@@ -26,7 +26,7 @@ class Fitting:
                               atmos=tel_par['atmos'],
                               aerosol=tel_par['aerosol'],
                               airmass=tel_par['airmass'])
-
+        """
         self.mbcalc = fitter_config['mbcov']['estimate']
         self.covmb = covmb
         display_lc = fitter_config['Display']
@@ -39,12 +39,14 @@ class Fitting:
         self.fitter = module.Fit_LC(
             model=fitter_config['Fitter']['model'],
             version=fitter_config['Fitter']['version'],
-            telescope=telescope, display=display_lc,
+            # telescope=telescope,
+            display=display_lc,
             snrmin=LC_sel['snrmin'], vparam_names=par_names)
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(
-                fitter_config['OutputFit']['directory'], fitter_config['ProductionIDFit'])
+                fitter_config['OutputFit']['directory'],
+                fitter_config['ProductionIDFit'])
 
         self.alpha = 0.14
         self.beta = 3.1

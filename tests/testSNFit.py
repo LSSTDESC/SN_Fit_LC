@@ -1,9 +1,7 @@
 from builtins import zip
 import numpy as np
 import unittest
-import lsst.utils.tests
 from sn_fitter.fit_sn_cosmo import Fit_LC
-from sn_tools.sn_telescope import Telescope
 from sn_fit.process_fit import Fitting
 from sn_fit.mbcov import MbCov
 import os
@@ -57,10 +55,10 @@ class TestSNFit(unittest.TestCase):
         with open('param_fit_test.yaml') as file:
             # The FullLoader parameter handles the conversion from YAML
             # scalar values to Python the dictionary format
-            conf= yaml.load(file, Loader=yaml.FullLoader)
+            conf = yaml.load(file, Loader=yaml.FullLoader)
 
-        conf['Simulations']['dirname']='.'
-        conf['Simulations']['prodid']= prodid
+        conf['Simulations']['dirname'] = '.'
+        conf['Simulations']['prodid'] = prodid
         conf['mbcov']['estimate'] = 1
         print(conf)
         # covmb
@@ -77,7 +75,7 @@ class TestSNFit(unittest.TestCase):
         for i, key in enumerate(f.keys()):
             simul = Table.read(simu_name, path=key)
 
-        print('number of LC to fit',len(simul))
+        print('number of LC to fit', len(simul))
         simul['z'] = np.round(simul['z'], 2)
         ll = np.round(list(np.arange(0.1, 0.9, 0.1)), 2)
         simul = simul[np.in1d(simul['z'], ll)]
@@ -121,7 +119,7 @@ class TestSNFit(unittest.TestCase):
 # fit_sncosmo = TestSNFitcosmo
 
 if __name__ == "__main__":
-    lsst.utils.tests.init()
+    #lsst.utils.tests.init()
     unittest.main(verbosity=5)
 
 
