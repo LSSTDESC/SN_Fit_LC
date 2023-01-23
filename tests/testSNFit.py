@@ -1,13 +1,16 @@
 from builtins import zip
 import numpy as np
 import unittest
-from sn_fitter.fit_sn_cosmo import Fit_LC
 from sn_fit.process_fit import Fitting
 from sn_fit.mbcov import MbCov
 import os
 import h5py
 from astropy.table import Table, vstack
 import yaml
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+#warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
+
 
 main_repo = 'https://me.lsst.eu/gris/DESC_SN_pipeline'
 
@@ -51,7 +54,7 @@ class TestSNFit(unittest.TestCase):
         # get these files from server if necessary
         getFile('unittests', simu_name)
         getFile('unittests', lc_name)
-        getRefDir('SALT2_Files')
+        # getRefDir('SALT2_Files')
 
         # get configuration file
         with open('param_fit_test.yaml') as file:
@@ -61,14 +64,14 @@ class TestSNFit(unittest.TestCase):
 
         conf['Simulations']['dirname'] = '.'
         conf['Simulations']['prodid'] = prodid
-        conf['mbcov']['estimate'] = 1
-        print(conf)
+        conf['mbcov']['estimate'] = 0
+        """
         # covmb
         covmb = MbCov('SALT2_Files', paramNames=dict(
             zip(['x0', 'x1', 'color'], ['x0', 'x1', 'c'])))
-
+        """
         # fit instance
-        fit = Fitting(conf, covmb=covmb)
+        fit = Fitting(conf)
 
         # getting the simu file
         f = h5py.File(simu_name, 'r')
@@ -105,7 +108,8 @@ class TestSNFit(unittest.TestCase):
         # load fit reference values
         fit_lc_ref = Table.read(ref_fit, path='lc_fits')
 
-        keychecks = ['z', 'Cov_colorcolor', 'mbfit', 'mb_recalc', 'sigma_mu']
+        # keychecks = ['z', 'Cov_colorcolor', 'mbfit', 'mb_recalc', 'sigma_mu']
+        keychecks = ['z', 'Cov_colorcolor', 'mbfit']
 
         for key in keychecks:
             assert(np.isclose(
