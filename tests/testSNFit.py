@@ -1,21 +1,34 @@
-from builtins import zip
 import numpy as np
 import unittest
 from sn_fit.process_fit import Fitting
-from sn_fit.mbcov import MbCov
 import os
 import h5py
 from astropy.table import Table, vstack
 import yaml
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-#warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
+# warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
 
 
 main_repo = 'https://me.lsst.eu/gris/DESC_SN_pipeline'
 
 
 def getFile(refdir, fname):
+    """
+    Function to get file (web) named fname and located in refdir
+
+    Parameters
+    ----------
+    refdir : str
+        directory location of the file.
+    fname : str
+        file name.
+
+    Returns
+    -------
+    None.
+
+    """
     fullname = '{}/{}/{}'.format(main_repo, refdir, fname)
 
     # check whether the file is available; if not-> get it!
@@ -26,6 +39,19 @@ def getFile(refdir, fname):
 
 
 def getRefDir(dirname):
+    """
+    Function to grab a directory.
+
+    Parameters
+    ----------
+    dirname : str
+        directory name.
+
+    Returns
+    -------
+    None.
+
+    """
     fullname = '{}/{}'.format(main_repo, dirname)
 
     if not os.path.exists(dirname):
@@ -37,8 +63,19 @@ def getRefDir(dirname):
 
 
 class TestSNFit(unittest.TestCase):
-    def testSNFit(self):
+    """
+    class to perform unit tests
+    """
 
+    def testSNFit(self):
+        """
+        Method used in pytest
+
+        Returns
+        -------
+        None.
+
+        """
         # get data
         # two files requested:
         # Simu_*: astropy table with a list of SN simulation parameters
@@ -82,8 +119,8 @@ class TestSNFit(unittest.TestCase):
 
         print('number of LC to fit', len(simul), np.unique(simul['z']))
         simul['z'] = np.round(simul['z'], 2)
-        #ll = np.round(list(np.arange(0.1, 0.9, 0.1)), 2)
-        #simul = simul[np.in1d(simul['z'], ll)]
+        # ll = np.round(list(np.arange(0.1, 0.9, 0.1)), 2)
+        # simul = simul[np.in1d(simul['z'], ll)]
 
         print('after sel', len(simul))
         res = Table()
@@ -123,13 +160,9 @@ class TestSNFit(unittest.TestCase):
             if os.path.isdir(ddir):
                 os.system('rm -rf {}'.format(ddir))
 
-#fit_snfit = TestSNFit
+# fit_snfit = TestSNFit
 # fit_sncosmo = TestSNFitcosmo
 
 
 if __name__ == "__main__":
-    # lsst.utils.tests.init()
     unittest.main(verbosity=5)
-
-
-# unittest.main(verbosity=5)
