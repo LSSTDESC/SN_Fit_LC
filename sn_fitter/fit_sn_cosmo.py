@@ -2,6 +2,7 @@ import sncosmo
 import numpy as np
 import pandas as pd
 from astropy.table import Table
+from astropy import units as u
 from sn_fit.sn_utils import Selection
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -35,8 +36,10 @@ class Fit_LC(Selection):
         # self.display = True
         self.bands = bands
 
-        # get the bands for sncosmo registration - with and without airmass
         """
+        # get the bands for sncosmo registration - with and without airmass
+        from sn_tools.sn_telescope import Telescope
+        telescope = Telescope(airmass=1.2)
         for band in bands:
             if telescope.airmass > 0:
                 band = sncosmo.Bandpass(
@@ -50,7 +53,6 @@ class Fit_LC(Selection):
                     name='LSST::'+band, wave_unit=u.nm)
             sncosmo.registry.register(band, force=True)
         """
-
         # get the source
         source = sncosmo.get_source(model, version=str(version))
         # get the dust
