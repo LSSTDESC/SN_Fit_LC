@@ -2,7 +2,6 @@ import sncosmo
 import numpy as np
 import pandas as pd
 from astropy.table import Table
-from astropy import units as u
 from sn_fit.sn_utils import Selection
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -39,6 +38,7 @@ class Fit_LC(Selection):
         """
         # get the bands for sncosmo registration - with and without airmass
         from sn_tools.sn_telescope import Telescope
+        from astropy import units as u
         telescope = Telescope(airmass=1.2)
         for band in bands:
             if telescope.airmass > 0:
@@ -106,7 +106,7 @@ class Fit_LC(Selection):
 
             # set redshift for the fit
             z = meta['z']
-            #daymax = meta['daymax']
+            # daymax = meta['daymax']
             bounds = {'z': (z-0.00001, z+0.00001),
                       'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
             if 'z' not in self.vparam_names:
