@@ -35,24 +35,6 @@ class Fit_LC(Selection):
         # self.display = True
         self.bands = bands
 
-        """
-        # get the bands for sncosmo registration - with and without airmass
-        from sn_tools.sn_telescope import Telescope
-        from astropy import units as u
-        telescope = Telescope(airmass=1.2)
-        for band in bands:
-            if telescope.airmass > 0:
-                band = sncosmo.Bandpass(
-                    telescope.atmosphere[band].wavelen,
-                    telescope.atmosphere[band].sb,
-                    name='LSST::'+band, wave_unit=u.nm)
-            else:
-                band = sncosmo.Bandpass(
-                    telescope.system[band].wavelen,
-                    telescope.system[band].sb,
-                    name='LSST::'+band, wave_unit=u.nm)
-            sncosmo.registry.register(band, force=True)
-        """
         # get the source
         source = sncosmo.get_source(model, version=str(version))
         # get the dust
