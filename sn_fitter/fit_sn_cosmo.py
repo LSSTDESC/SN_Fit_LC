@@ -55,7 +55,7 @@ class Fit_LC(Selection):
                                  ['z', 't0', 'x0', 'x1', 'color', 'hostebv',
                                   'hostr_v', 'mwebv', 'mwr_v']))
 
-    def __call__(self, lc):
+    def __call__(self, lc, plot=False):
         """
         call method: this is where the fit is effectively performed
 
@@ -69,22 +69,31 @@ class Fit_LC(Selection):
 
         """
 
-        if lc is None:
-            return None, None
-
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
         res_params_values = np.zeros((5, 1), dtype=float)
-        vparam_names = ['t0', 'x0', 'x1', 'c']
-        covariance = np.zeros((4, 4,), dtype=float)
+        #vparam_names = ['t0', 'x0', 'x1', 'c']
+        vparam_names = self.vparam_names
+        nc = len(vparam_names)
+        covariance = np.zeros((nc, nc), dtype=float)
         mbfit = -1.
         z = -1.
         fitstatus = 'nofit'
         chisq = 99999
         ndof = -1
         meta = None
-        if lc is not None:
-            # get metadata
-            meta = lc.meta
+
+        if lc is None:
+            return None
+
+        # get metadata
+        meta = lc.meta
+        if len(lc) == 0:
+            fitstatus = 'nodat'
+
+        else:
+
+            if 'filter' in lc.columns and 'band' in lc.columns:
+                del lc['filter']
 
             # set redshift for the fit
             z = meta['z']
@@ -118,16 +127,11 @@ class Fit_LC(Selection):
                         fitstatus = 'fitok'
                         chisq = res.chisq
                         ndof = res.ndof
-                        """
-                        print('fit results',res_param_names)
-                        print(res_params_values)
-                        print(covariance)
-                        """
+
                     else:
                         # print('badfit',res)
                         fitstatus = 'badfit'
                 except (RuntimeError, TypeError, NameError) as err:
-                    print('fit pb', err)
                     fitstatus = 'crash'
                     # set the simulation values here
                     if meta['sn_type'] == 'SN_Ia':
@@ -140,42 +144,54 @@ class Fit_LC(Selection):
             else:
                 fitstatus = 'nodat'
 
+        # plot if required
+        if plot:
+            self.plotIt(select, fitted_model, res.errors, fitstatus)
+
         # Make a dict of the fitted result (plus metadata)
-        # print('herea')
+        resa = self._transform(meta, res_param_names, list(
+            res_params_values), vparam_names, covariance, mbfit, fitstatus,
+            chisq, ndof)
+
+        output = Table(rows=[list(resa.values())], names=list(resa.keys()))
+
+        print('output fit', len(output.columns))
+        for col in output.columns:
+            print(output[col])
+        return output
+
+    def plotIt(self, select, fitted_model, errors, fitstatus):
         """
-        if fitstatus == 'crash':
-            return None
+        Method to plot LC
+
+        Parameters
+        ----------
+        select : astropy table
+            lc to plot.
+        fitted_model : sn_cosmo model
+            fitted model.
+        errors : array
+            fit params error.
+        fitstatus : str
+            fit status.
+
+        Returns
+        -------
+        None.
+
         """
-        if self.display and len(select) >= 5:
-            print(select['band', 'time', 'flux', 'fluxerr'])
-            import pylab as plt
+
+        if len(select) >= 1:
+            import matplotlib.pyplot as plt
             """
             sncosmo.plot_lc(select, model=fitted_model,
                             color='r', pulls=False, errors=res.errors)
             """
             if fitstatus == 'fitok':
-                sncosmo.plot_lc(select, model=fitted_model, errors=res.errors)
+                sncosmo.plot_lc(select, model=fitted_model, errors=errors)
             else:
                 sncosmo.plot_lc(select)
-            plt.show()
-
-        resa = self._transform(meta, res_param_names, list(
-            res_params_values), vparam_names, covariance, mbfit, fitstatus,
-            chisq, ndof)
-
-        """
-        resb = self._get_infos(
-            z, res_params_values[res_param_names.index('t0')], select)
-        resa.update(resb)
-        """
-
-        output = Table(rows=[list(resa.values())], names=list(resa.keys()))
-
-        """
-        for nn in output.columns:
-            print('after transform',nn, output[nn].data)
-        """
-        return output
+            plt.show(block=False)
 
     def _transform(self, meta, par_names, params, vpar_names, covmat,
                    mbfit, fitstatus, chisq, ndof):
@@ -237,6 +253,12 @@ class Fit_LC(Selection):
         res['fitstatus'] = fitstatus
         res['chisq'] = chisq
         res['ndof'] = ndof
+
+        vvs = ['hostebv_fit', 'hostr_v_fit', 'mwebv_fit', 'mwr_v_fit']
+
+        for vv in vvs:
+            if vv not in res.keys():
+                res[vv] = -1.0
 
         return res
 
