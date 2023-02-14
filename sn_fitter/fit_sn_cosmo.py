@@ -28,12 +28,14 @@ class Fit_LC(Selection):
 
     def __init__(self, model='salt2-extended', version=1.0,
                  display=False, bands='ugrizy',
-                 snrmin=1, vparam_names=['t0', 'x0', 'x1', 'c']):
+                 snrmin=1, fit_selected=0,
+                 vparam_names=['t0', 'x0', 'x1', 'c']):
         super().__init__(snrmin)
 
         self.display = display
         # self.display = True
         self.bands = bands
+        self.fit_selected = fit_selected
 
         # get the source
         source = sncosmo.get_source(model, version=str(version))
@@ -71,7 +73,7 @@ class Fit_LC(Selection):
 
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
         res_params_values = np.zeros((5, 1), dtype=float)
-        #vparam_names = ['t0', 'x0', 'x1', 'c']
+        # vparam_names = ['t0', 'x0', 'x1', 'c']
         vparam_names = self.vparam_names
         nc = len(vparam_names)
         covariance = np.zeros((nc, nc), dtype=float)
@@ -87,66 +89,20 @@ class Fit_LC(Selection):
 
         # get metadata
         meta = lc.meta
+
+        fit_please = True
         if len(lc) == 0:
-            fitstatus = 'nodat'
+            fit_please = False
 
+        if self.fit_selected and not lc.meta['selected']:
+            fit_please = False
+
+        if fit_please:
+            res_param_names, res_params_values, vparam_names, \
+                covariance, mbfit, fitstatus, chisq, ndof = \
+                self.fitIt(meta, vparam_names, lc, plot)
         else:
-
-            if 'filter' in lc.columns and 'band' in lc.columns:
-                del lc['filter']
-
-            # set redshift for the fit
-            z = meta['z']
-            # daymax = meta['daymax']
-            bounds = {'z': (z-0.00001, z+0.00001),
-                      'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
-            if 'z' not in self.vparam_names:
-                self.SN_fit_model.set(z=z)
-                bounds = {'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
-            # apply extinction here
-            self.SN_fit_model.set(mwebv=meta['ebvofMW'])
-
-            select = self.select(lc)
-
-            if select is not None:
-                try:
-                    # fit here
-                    selfit = select.copy()
-                    res, fitted_model = sncosmo.fit_lc(
-                        selfit, model=self.SN_fit_model,
-                        vparam_names=self.vparam_names,
-                        bounds=bounds, minsnr=self.snrmin)
-                    # get parameters
-                    if res['success']:
-                        mbfit = fitted_model._source.peakmag(
-                            'bessellb', 'vega')
-                        res_param_names = res['param_names']
-                        res_params_values = res['parameters']
-                        vparam_names = res['vparam_names']
-                        covariance = res['covariance']
-                        fitstatus = 'fitok'
-                        chisq = res.chisq
-                        ndof = res.ndof
-
-                    else:
-                        # print('badfit',res)
-                        fitstatus = 'badfit'
-                except (RuntimeError, TypeError, NameError) as err:
-                    fitstatus = 'crash'
-                    # set the simulation values here
-                    if meta['sn_type'] == 'SN_Ia':
-                        res_params_values = np.array(
-                            [meta['z'], meta['daymax'], meta['x0'],
-                             meta['x1'], meta['color']])
-                    else:
-                        res_params_values = np.array(
-                            [meta['z'], meta['daymax'], -1.0, -1.0, -1.0])
-            else:
-                fitstatus = 'nodat'
-
-        # plot if required
-        if plot:
-            self.plotIt(select, fitted_model, res.errors, fitstatus)
+            fitstatus = 'nodat'
 
         # Make a dict of the fitted result (plus metadata)
         resa = self._transform(meta, res_param_names, list(
@@ -155,10 +111,113 @@ class Fit_LC(Selection):
 
         output = Table(rows=[list(resa.values())], names=list(resa.keys()))
 
-        print('output fit', len(output.columns))
-        for col in output.columns:
-            print(output[col])
         return output
+
+    def fitIt(self, meta, vparam_names, lc, plot=False):
+        """
+        Method to (try) to perform LC fit
+
+        Parameters
+        ----------
+        meta : dict
+            LC metedata.
+        vparam_names : list(str)
+            fit parameter names.
+        lc : astropy table
+            Light curve.
+        plot : bool
+            to plot the LC. Default: False
+
+        Returns
+        -------
+        res_param_names : TYPE
+            DESCRIPTION.
+        res_params_values : TYPE
+            DESCRIPTION.
+        vparam_names : TYPE
+            DESCRIPTION.
+        covariance : TYPE
+            DESCRIPTION.
+        mbfit : TYPE
+            DESCRIPTION.
+        fitstatus : TYPE
+            DESCRIPTION.
+        chisq : TYPE
+            DESCRIPTION.
+        ndof : TYPE
+            DESCRIPTION.
+
+        """
+
+        res_param_names = ['z', 't0', 'x0', 'x1', 'c']
+        res_params_values = np.zeros((5, 1), dtype=float)
+        # vparam_names = ['t0', 'x0', 'x1', 'c']
+        nc = len(vparam_names)
+        covariance = np.zeros((nc, nc), dtype=float)
+        mbfit = -1.
+        z = -1.
+        fitstatus = 'nofit'
+        chisq = 99999
+        ndof = -1
+
+        if 'filter' in lc.columns and 'band' in lc.columns:
+            del lc['filter']
+
+        # set redshift for the fit
+        z = meta['z']
+        # daymax = meta['daymax']
+        bounds = {'z': (z-0.00001, z+0.00001),
+                  'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
+        if 'z' not in self.vparam_names:
+            self.SN_fit_model.set(z=z)
+            bounds = {'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
+        # apply extinction here
+        self.SN_fit_model.set(mwebv=meta['ebvofMW'])
+
+        select = self.select(lc)
+
+        if select is not None:
+            try:
+                # fit here
+                selfit = select.copy()
+                res, fitted_model = sncosmo.fit_lc(
+                    selfit, model=self.SN_fit_model,
+                    vparam_names=self.vparam_names,
+                    bounds=bounds, minsnr=self.snrmin)
+                # get parameters
+                if res['success']:
+                    mbfit = fitted_model._source.peakmag(
+                        'bessellb', 'vega')
+                    res_param_names = res['param_names']
+                    res_params_values = res['parameters']
+                    vparam_names = res['vparam_names']
+                    covariance = res['covariance']
+                    fitstatus = 'fitok'
+                    chisq = res.chisq
+                    ndof = res.ndof
+
+                else:
+                    # print('badfit',res)
+                    fitstatus = 'badfit'
+            except (RuntimeError, TypeError, NameError) as err:
+                fitstatus = 'crash'
+                # set the simulation values here
+                if meta['sn_type'] == 'SN_Ia':
+                    res_params_values = np.array(
+                        [meta['z'], meta['daymax'], meta['x0'],
+                         meta['x1'], meta['color']])
+                else:
+                    res_params_values = np.array(
+                        [meta['z'], meta['daymax'], -1.0, -1.0, -1.0])
+        else:
+            fitstatus = 'nodat'
+
+        # plot if required
+        if plot:
+            self.plotIt(select, fitted_model, res.errors, fitstatus)
+
+        return res_param_names, res_params_values, vparam_names, \
+            covariance, mbfit, fitstatus, chisq, ndof
 
     def plotIt(self, select, fitted_model, errors, fitstatus):
         """
