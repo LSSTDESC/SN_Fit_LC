@@ -15,8 +15,8 @@ Simulations dirname dbDir str # dir of LC files
 
 ## Fitter
 Fitter name  sn_fitter.fit_sn_cosmo str # fitter name: sncosmo,snfast,...
-Fitter model salt2-extended str # spectra model
-Fitter version 1.0 str #version
+Fitter model salt3 str # spectra model
+Fitter version 2.0 str #version
 Fitter parnames t0,x1,c,x0 str # parameters to fit
 
 ## LC selection
