@@ -40,7 +40,6 @@ class Fitting:
         self.fitter = module.Fit_LC(
             model=fitter_config['Fitter']['model'],
             version=fitter_config['Fitter']['version'],
-            display=display_lc,
             snrmin=snrmin,
             fit_selected=fit_selected,
             vparam_names=par_names)
