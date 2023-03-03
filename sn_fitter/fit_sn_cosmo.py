@@ -27,15 +27,14 @@ class Fit_LC(Selection):
     """
 
     def __init__(self, model='salt2-extended', version=1.0,
-                 display=False, bands='ugrizy',
+                 bands='ugrizy',
                  snrmin=1, fit_selected=0,
-                 vparam_names=['t0', 'x0', 'x1', 'c']):
+                 vparam_names=['t0', 'x0', 'x1', 'c'],outType='astropyTable'):
         super().__init__(snrmin)
 
-        self.display = display
-        # self.display = True
         self.bands = bands
         self.fit_selected = fit_selected
+        self.outType = outType
 
         # get the source
         source = sncosmo.get_source(model, version=str(version))
@@ -57,7 +56,8 @@ class Fit_LC(Selection):
                                  ['z', 't0', 'x0', 'x1', 'color', 'hostebv',
                                   'hostr_v', 'mwebv', 'mwr_v']))
 
-    def __call__(self, lc, plot=False):
+    def __call__(self, lc):
+        
         """
         call method: this is where the fit is effectively performed
 
@@ -70,18 +70,19 @@ class Fit_LC(Selection):
         -----------
 
         """
-
-        res_param_names = ['z', 't0', 'x0', 'x1', 'c']
-        res_params_values = np.zeros((5, 1), dtype=float)
+        dict_res = {}
+        
+        dict_res['res_param_names'] = ['z', 't0', 'x0', 'x1', 'c']
+        dict_res['res_params_values'] = np.zeros((5, 1), dtype=float)
         # vparam_names = ['t0', 'x0', 'x1', 'c']
-        vparam_names = self.vparam_names
-        nc = len(vparam_names)
-        covariance = np.zeros((nc, nc), dtype=float)
-        mbfit = -1.
-        z = -1.
-        fitstatus = 'nofit'
-        chisq = 99999
-        ndof = -1
+        dict_res['vparam_names'] = self.vparam_names
+        nc = len(dict_res['vparam_names'])
+        dict_res['covariance'] = np.zeros((nc, nc), dtype=float)
+        dict_res['mbfit'] = -1.
+        dict_res['z'] = -1.
+        dict_res['fitstatus'] = 'nofit'
+        dict_res['chisq'] = 99999
+        dict_res['ndof'] = -1
         meta = None
 
         if lc is None:
@@ -98,22 +99,33 @@ class Fit_LC(Selection):
             fit_please = False
 
         if fit_please:
-            res_param_names, res_params_values, vparam_names, \
-                covariance, mbfit, fitstatus, chisq, ndof = \
-                self.fitIt(meta, vparam_names, lc, plot)
+            dict_res = self.fitIt(meta,
+                                  dict_res['vparam_names'],
+                                  lc)
         else:
             fitstatus = 'nodat'
+            dict_res['fitstatus'] = fitstatus
 
         # Make a dict of the fitted result (plus metadata)
-        resa = self._transform(meta, res_param_names, list(
-            res_params_values), vparam_names, covariance, mbfit, fitstatus,
-            chisq, ndof)
+        res = dict_res
+        if self.outType == 'astropyTable':
+            resa = self._transform(meta,
+                                   dict_res['res_param_names'],
+                                   list(dict_res['res_params_values']),
+                                   dict_res['vparam_names'],
+                                   dict_res['covariance'],
+                                   dict_res['mbfit'],
+                                   dict_res['fitstatus'],
+                                   dict_res['chisq'],
+                                   dict_res['ndof'])
 
-        output = Table(rows=[list(resa.values())], names=list(resa.keys()))
 
-        return output
+            output = Table(rows=[list(resa.values())], names=list(resa.keys()))  
+            res = output
 
-    def fitIt(self, meta, vparam_names, lc, plot=False):
+        return res
+
+    def fitIt(self, meta, vparam_names, lc):
         """
         Method to (try) to perform LC fit
 
@@ -125,9 +137,6 @@ class Fit_LC(Selection):
             fit parameter names.
         lc : astropy table
             Light curve.
-        plot : bool
-            to plot the LC. Default: False
-
         Returns
         -------
         res_param_names : TYPE
@@ -159,6 +168,8 @@ class Fit_LC(Selection):
         fitstatus = 'nofit'
         chisq = 99999
         ndof = -1
+        fitted_model = None
+        res = None
 
         if 'filter' in lc.columns and 'band' in lc.columns:
             del lc['filter']
@@ -212,14 +223,28 @@ class Fit_LC(Selection):
         else:
             fitstatus = 'nodat'
 
-        # plot if required
-        if plot:
-            self.plotIt(select, fitted_model, res.errors, fitstatus)
+        dict_res = {}
+        dict_res['res_param_names'] = res_param_names
+        dict_res['res_params_values'] = res_params_values
+        dict_res['vparam_names'] = vparam_names
+        dict_res['covariance'] = covariance
+        dict_res['mbfit'] = mbfit
+        dict_res['fitstatus'] =fitstatus
+        dict_res['chisq'] = chisq
+        dict_res['ndof'] =ndof
+        dict_res['fitted_model'] = fitted_model
+        if res is not None:
+            dict_res['res_errors'] = res.errors
+        else:
+            dict_res['res_errors'] = None
+        dict_res['fitstatus'] = fitstatus
+        dict_res['lc'] = lc
+        
+        return dict_res
 
-        return res_param_names, res_params_values, vparam_names, \
-            covariance, mbfit, fitstatus, chisq, ndof
-
-    def plotIt(self, select, fitted_model, errors, fitstatus):
+    def plotIt(self, select, fitted_model, errors, 
+               fitstatus,
+               figtext=''):
         """
         Method to plot LC
 
@@ -233,6 +258,8 @@ class Fit_LC(Selection):
             fit params error.
         fitstatus : str
             fit status.
+        block: bool, opt
+         for remnent display. Default: False
 
         Returns
         -------
@@ -241,16 +268,14 @@ class Fit_LC(Selection):
         """
 
         if len(select) >= 1:
-            import matplotlib.pyplot as plt
-            """
-            sncosmo.plot_lc(select, model=fitted_model,
-                            color='r', pulls=False, errors=res.errors)
-            """
             if fitstatus == 'fitok':
-                sncosmo.plot_lc(select, model=fitted_model, errors=errors)
+                fig = sncosmo.plot_lc(select, model=fitted_model,
+                                errors=errors, xfigsize=10, pulls=False,
+                                figtext=figtext)
             else:
-                sncosmo.plot_lc(select)
-            plt.show(block=False)
+                fig = sncosmo.plot_lc(select, xfigsize=10,figtext=figtext)
+            return fig
+        return None
 
     def _transform(self, meta, par_names, params, vpar_names, covmat,
                    mbfit, fitstatus, chisq, ndof):
