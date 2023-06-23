@@ -29,7 +29,7 @@ class Fit_LC(Selection):
     def __init__(self, model='salt2-extended', version=1.0,
                  bands='ugrizy',
                  snrmin=1, fit_selected=0,
-                 vparam_names=['t0', 'x0', 'x1', 'c'],outType='astropyTable'):
+                 vparam_names=['t0', 'x0', 'x1', 'c'], outType='astropyTable'):
         super().__init__(snrmin)
 
         self.bands = bands
@@ -57,7 +57,6 @@ class Fit_LC(Selection):
                                   'hostr_v', 'mwebv', 'mwr_v']))
 
     def __call__(self, lc):
-        
         """
         call method: this is where the fit is effectively performed
 
@@ -71,7 +70,7 @@ class Fit_LC(Selection):
 
         """
         dict_res = {}
-        
+
         dict_res['res_param_names'] = ['z', 't0', 'x0', 'x1', 'c']
         dict_res['res_params_values'] = np.zeros((5, 1), dtype=float)
         # vparam_names = ['t0', 'x0', 'x1', 'c']
@@ -95,8 +94,9 @@ class Fit_LC(Selection):
         if len(lc) == 0:
             fit_please = False
 
-        if self.fit_selected and not lc.meta['selected']:
-            fit_please = False
+        if 'selected' in lc.meta.keys():
+            if self.fit_selected and not lc.meta['selected']:
+                fit_please = False
 
         if fit_please:
             dict_res = self.fitIt(meta,
@@ -119,8 +119,7 @@ class Fit_LC(Selection):
                                    dict_res['chisq'],
                                    dict_res['ndof'])
 
-
-            output = Table(rows=[list(resa.values())], names=list(resa.keys()))  
+            output = Table(rows=[list(resa.values())], names=list(resa.keys()))
             res = output
 
         return res
@@ -229,9 +228,9 @@ class Fit_LC(Selection):
         dict_res['vparam_names'] = vparam_names
         dict_res['covariance'] = covariance
         dict_res['mbfit'] = mbfit
-        dict_res['fitstatus'] =fitstatus
+        dict_res['fitstatus'] = fitstatus
         dict_res['chisq'] = chisq
-        dict_res['ndof'] =ndof
+        dict_res['ndof'] = ndof
         dict_res['fitted_model'] = fitted_model
         if res is not None:
             dict_res['res_errors'] = res.errors
@@ -239,10 +238,10 @@ class Fit_LC(Selection):
             dict_res['res_errors'] = None
         dict_res['fitstatus'] = fitstatus
         dict_res['lc'] = lc
-        
+
         return dict_res
 
-    def plotIt(self, select, fitted_model, errors, 
+    def plotIt(self, select, fitted_model, errors,
                fitstatus,
                figtext=''):
         """
@@ -270,10 +269,10 @@ class Fit_LC(Selection):
         if len(select) >= 1:
             if fitstatus == 'fitok':
                 fig = sncosmo.plot_lc(select, model=fitted_model,
-                                errors=errors, xfigsize=10, pulls=False,
-                                figtext=figtext)
+                                      errors=errors, xfigsize=10, pulls=False,
+                                      figtext=figtext)
             else:
-                fig = sncosmo.plot_lc(select, xfigsize=10,figtext=figtext)
+                fig = sncosmo.plot_lc(select, xfigsize=10, figtext=figtext)
             return fig
         return None
 
