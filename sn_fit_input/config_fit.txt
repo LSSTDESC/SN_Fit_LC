@@ -20,7 +20,7 @@ Fitter version 2.0 str #version
 Fitter parnames t0,x1,c,x0 str # parameters to fit
 
 ## LC selection
-LCSelection snrmin 5. float #min SNR for LC points
+LCSelection snrmin 1. float #min SNR for LC points
 
 ## fit only selected LC
 fit_selected 0 int # to fit only selected LC
