@@ -17,6 +17,9 @@ class Fitting:
     def __init__(self, fitter_config, covmb=None):
 
         # load instrument
+        from sn_telmodel.sn_telescope import load_telescope_from_config
+        telescope = load_telescope_from_config(
+            fitter_config['InstrumentFit'])
         """
         tel_par = fitter_config['InstrumentFit']
         telescope = Telescope(name=tel_par['name'],
@@ -42,7 +45,8 @@ class Fitting:
             version=fitter_config['Fitter']['version'],
             snrmin=snrmin,
             fit_selected=fit_selected,
-            vparam_names=par_names)
+            vparam_names=par_names,
+            telescope=telescope)
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(
