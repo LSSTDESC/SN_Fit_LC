@@ -29,7 +29,8 @@ class Fit_LC(Selection):
     def __init__(self, model='salt2-extended', version=1.0,
                  bands='ugrizy',
                  snrmin=1, fit_selected=0,
-                 vparam_names=['t0', 'x0', 'x1', 'c'], outType='astropyTable'):
+                 vparam_names=['t0', 'x0', 'x1', 'c'],
+                 outType='astropyTable', telescope=None):
         super().__init__(snrmin)
 
         self.bands = bands
@@ -55,6 +56,17 @@ class Fit_LC(Selection):
                                   'hostebv', 'hostr_v', 'mwebv', 'mwr_v'],
                                  ['z', 't0', 'x0', 'x1', 'color', 'hostebv',
                                   'hostr_v', 'mwebv', 'mwr_v']))
+
+        # band registery in sncosmo
+        from astropy import units as u
+        for band in 'grizy':
+            name = '{}::{}'.format(telescope.name, band)
+            throughput = telescope.lsst_atmos_aerosol[band]
+            bandcosmo = sncosmo.Bandpass(
+                throughput.wavelen,
+                throughput.sb, name=name,
+                wave_unit=u.nm)
+            sncosmo.registry.register(bandcosmo, force=True)
 
     def __call__(self, lc):
         """
