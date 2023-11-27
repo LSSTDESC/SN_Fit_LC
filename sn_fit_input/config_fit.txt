@@ -5,8 +5,8 @@ ProductionIDFit prodid str #Production Id
 InstrumentFit name LSST str #instrument name
 InstrumentFit telescope_dir throughputs str #main telescope dir
 InstrumentFit telescope_tag 1.9 str #throughputs tag version
-InstrumentFit throughputDir throughputs/baseline str #instrument throughput dir
-InstrumentFit atmosDir throughputs/atmos str #instrument atmos dir
+InstrumentFit throughputDir baseline str #instrument throughput dir
+InstrumentFit atmosDir atmos str #instrument atmos dir
 InstrumentFit airmass 1.2 float #instrument airmass
 #InstrumentFit atmos 1 int #instrument atmos
 InstrumentFit aerosol 1 int #instrument aerosol
