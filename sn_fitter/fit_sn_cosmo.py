@@ -220,7 +220,7 @@ class Fit_LC(Selection):
 
                 else:
                     # print('badfit',res)
-                    fitstatus = 'badfit'
+                    fitstatus = 'bafit'
             except (RuntimeError, TypeError, NameError) as err:
                 fitstatus = 'crash'
                 # set the simulation values here
