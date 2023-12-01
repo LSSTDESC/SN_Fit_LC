@@ -92,7 +92,7 @@ class Fit_LC(Selection):
         dict_res['mbfit'] = -1.
         dict_res['z'] = -1.
         dict_res['fitstatus'] = 'nofit'
-        dict_res['chisq'] = 99999
+        dict_res['chisq'] = 99999.
         dict_res['ndof'] = -1
         meta = None
 
