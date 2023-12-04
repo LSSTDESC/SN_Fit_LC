@@ -177,7 +177,7 @@ class Fit_LC(Selection):
         mbfit = -1.
         z = -1.
         fitstatus = 'nofit'
-        chisq = 99999
+        chisq = 99999.
         ndof = -1
         fitted_model = None
         res = None
