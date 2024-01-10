@@ -30,7 +30,7 @@ class Fit_LC(Selection):
                  bands='ugrizy',
                  snrmin=1, fit_selected=0,
                  vparam_names=['t0', 'x0', 'x1', 'c'],
-                 outType='astropyTable', telescope=None):
+                 outType='astropyTable', telescope=None, sigmaz=1.e-5):
         super().__init__(snrmin)
 
         self.bands = bands
@@ -56,6 +56,8 @@ class Fit_LC(Selection):
                                   'hostebv', 'hostr_v', 'mwebv', 'mwr_v'],
                                  ['z', 't0', 'x0', 'x1', 'color', 'hostebv',
                                   'hostr_v', 'mwebv', 'mwr_v']))
+
+        self.sigmaz = sigmaz
 
         # band registery in sncosmo
         from astropy import units as u
@@ -188,7 +190,10 @@ class Fit_LC(Selection):
         # set redshift for the fit
         z = meta['z']
         # daymax = meta['daymax']
-        bounds = {'z': (z-0.00001, z+0.00001),
+
+        zmin = z-self.sigmaz*(1+z)
+        zmax = z+self.sigmaz*(1+z)
+        bounds = {'z': (zmin, zmax),
                   'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
         if 'z' not in self.vparam_names:
             self.SN_fit_model.set(z=z)
