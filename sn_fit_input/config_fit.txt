@@ -19,7 +19,8 @@ Simulations dirname dbDir str # dir of LC files
 Fitter name  sn_fitter.fit_sn_cosmo str # fitter name: sncosmo,snfast,...
 Fitter model salt3 str # spectra model
 Fitter version 2.0 str #version
-Fitter parnames t0,x1,c,x0 str # parameters to fit
+Fitter parnames t0,x1,c,x0,z str # parameters to fit
+Fitter sigmaz 1.e-5 float # redshift error for LC fit
 
 ## LC selection
 LCSelection snrmin 1. float #min SNR for LC points
