@@ -38,6 +38,7 @@ class Fitting:
 
         # fit instance
         par_names = fitter_config['Fitter']['parnames'].split(',')
+        sigmaz = fitter_config['Fitter']['sigmaz']
         snrmin = LC_sel['snrmin']
         fit_selected = fitter_config['fit']['selected']
         self.fitter = module.Fit_LC(
@@ -46,7 +47,8 @@ class Fitting:
             snrmin=snrmin,
             fit_selected=fit_selected,
             vparam_names=par_names,
-            telescope=telescope)
+            telescope=telescope,
+            sigmaz=sigmaz)
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(
