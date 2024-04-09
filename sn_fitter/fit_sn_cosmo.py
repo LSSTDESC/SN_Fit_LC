@@ -30,7 +30,8 @@ class Fit_LC(Selection):
                  bands='ugrizy',
                  snrmin=1, fit_selected=0,
                  vparam_names=['t0', 'x0', 'x1', 'c'],
-                 outType='astropyTable', telescope=None, sigmaz=1.e-5):
+                 outType='astropyTable', telescope=None,
+                 sigmaz=1.e-5, airmassType='const'):
         super().__init__(snrmin)
 
         self.bands = bands
@@ -57,18 +58,48 @@ class Fit_LC(Selection):
                                  ['z', 't0', 'x0', 'x1', 'color', 'hostebv',
                                   'hostr_v', 'mwebv', 'mwr_v']))
 
-        self.sigmaz = sigmaz
+        self.telescope = telescope
 
+        self.sigmaz = sigmaz
+        self.airmassType = airmassType
+
+        self.register_bands()
+
+    def register_bands(self):
+        """
+        Method to register bands in sncosmo
+
+        Returns
+        -------
+        None.
+
+        """
         # band registery in sncosmo
         from astropy import units as u
-        for band in 'grizy':
-            name = '{}::{}'.format(telescope.name, band)
-            throughput = telescope.lsst_atmos_aerosol[band]
-            bandcosmo = sncosmo.Bandpass(
-                throughput.wavelen,
-                throughput.sb, name=name,
-                wave_unit=u.nm)
-            sncosmo.registry.register(bandcosmo, force=True)
+        if self.airmassType != 'const':
+            # for various airmass
+            for airmass in range(10, 31, 1):
+                for band in 'grizy':
+                    name = '{}::{}_{}'.format(
+                        self.telescope.name, band, airmass)
+                    self.telescope.load_atmosphere(airmass/10, 'aerosol')
+                    throughput = self.telescope.lsst_atmos_aerosol[band]
+                    bandcosmo = sncosmo.Bandpass(
+                        throughput.wavelen,
+                        throughput.sb, name=name,
+                        wave_unit=u.nm)
+                    sncosmo.registry.register(bandcosmo, force=True)
+
+        else:
+            for band in 'grizy':
+                name = '{}::{}'.format(self.telescope.name, band)
+                self.telescope.load_atmosphere(1.2, 'aerosol')
+                throughput = self.telescope.lsst_atmos_aerosol[band]
+                bandcosmo = sncosmo.Bandpass(
+                    throughput.wavelen,
+                    throughput.sb, name=name,
+                    wave_unit=u.nm)
+                sncosmo.registry.register(bandcosmo, force=True)
 
     def __call__(self, lc):
         """
