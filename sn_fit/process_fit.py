@@ -61,6 +61,7 @@ class Fitting:
         self.beta = 3.1
 
         self.val = []
+        self.remove_sat = False
 
     def __call__(self, lc, j=-1, output_q=None):
         """
@@ -85,7 +86,7 @@ class Fitting:
         if 'filter' in lc.columns:
             lc.remove_columns(['filter'])
         # LC fit here
-        resfit = self.fitter(lc)
+        resfit = self.fitter(lc, remove_sat=self.remove_sat)
 
         # estimate mbcov if requested
         if self.mbcalc and resfit:

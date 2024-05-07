@@ -101,7 +101,7 @@ class Fit_LC(Selection):
                     wave_unit=u.nm)
                 sncosmo.registry.register(bandcosmo, force=True)
 
-    def __call__(self, lc):
+    def __call__(self, lc, remove_sat=False):
         """
         call method: this is where the fit is effectively performed
 
@@ -109,6 +109,8 @@ class Fit_LC(Selection):
         ---------------
         lc: astropy table
            lc points
+       remove_sat : bool, optional
+            To remove saturated fluxes. The default is False.
 
         Returns
         -----------
@@ -136,8 +138,18 @@ class Fit_LC(Selection):
         meta = lc.meta
 
         fit_please = True
+
         if len(lc) == 0:
             fit_please = False
+
+        # remove saturated flux here
+        if len(lc) > 0:
+            if remove_sat:
+                idx = lc['sat'] == 0
+                lc = lc[idx]
+
+            if len(lc) == 0:
+                fit_please = False
 
         if 'selected' in lc.meta.keys():
             if self.fit_selected and not lc.meta['selected']:
@@ -226,8 +238,9 @@ class Fit_LC(Selection):
         zmax = z+self.sigmaz*(1+z)
         bounds = {'z': (zmin, zmax),
                   'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
+
         if 'z' not in self.vparam_names:
-            self.SN_fit_model.set(z=z)
+            self.SN_fit_model.set(z=meta['zmeas'])
             bounds = {'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
         # apply extinction here
         self.SN_fit_model.set(mwebv=meta['ebvofMW'])
