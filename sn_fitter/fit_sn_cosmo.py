@@ -157,7 +157,7 @@ class Fit_LC(Selection):
 
         if fit_please:
             dict_res = self.fitIt(meta,
-                                  dict_res['vparam_names'],
+                                  # dict_res['vparam_names'],
                                   lc)
         else:
             fitstatus = 'nodat'
@@ -181,7 +181,7 @@ class Fit_LC(Selection):
 
         return res
 
-    def fitIt(self, meta, vparam_names, lc):
+    def fitIt(self, meta, lc):
         """
         Method to (try) to perform LC fit
 
@@ -189,8 +189,6 @@ class Fit_LC(Selection):
         ----------
         meta : dict
             LC metedata.
-        vparam_names : list(str)
-            fit parameter names.
         lc : astropy table
             Light curve.
         Returns
@@ -217,7 +215,7 @@ class Fit_LC(Selection):
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
         res_params_values = np.zeros((5, 1), dtype=float)
         # vparam_names = ['t0', 'x0', 'x1', 'c']
-        nc = len(vparam_names)
+        nc = len(self.vparam_names)
         covariance = np.zeros((nc, nc), dtype=float)
         mbfit = -1.
         z = -1.
@@ -286,7 +284,7 @@ class Fit_LC(Selection):
         dict_res = {}
         dict_res['res_param_names'] = res_param_names
         dict_res['res_params_values'] = res_params_values
-        dict_res['vparam_names'] = vparam_names
+        dict_res['vparam_names'] = self.vparam_names
         dict_res['covariance'] = covariance
         dict_res['mbfit'] = mbfit
         dict_res['fitstatus'] = fitstatus
