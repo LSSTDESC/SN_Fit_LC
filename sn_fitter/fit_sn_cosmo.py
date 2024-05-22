@@ -174,7 +174,8 @@ class Fit_LC(Selection):
                                    dict_res['mbfit'],
                                    dict_res['fitstatus'],
                                    dict_res['chisq'],
-                                   dict_res['ndof'])
+                                   dict_res['ndof'],
+                                   dict_res['errors'])
 
             output = Table(rows=[list(resa.values())], names=list(resa.keys()))
             res = output
@@ -240,15 +241,20 @@ class Fit_LC(Selection):
         if 'z' not in self.vparam_names:
             self.SN_fit_model.set(z=meta['zmeas'])
             bounds = {'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
+
         # apply extinction here
         self.SN_fit_model.set(mwebv=meta['ebvofMW'])
 
-        select = self.select(lc)
+        select_lc = self.select(lc)
 
-        if select is not None:
+        if select_lc is not None:
             try:
                 # fit here
-                selfit = select.copy()
+                selfit = select_lc.copy()
+
+                idx = selfit['fluxerr'] > 0.
+                idx &= selfit['flux'] >= 0.
+                selfit = selfit[idx]
                 res, fitted_model = sncosmo.fit_lc(
                     selfit, model=self.SN_fit_model,
                     vparam_names=self.vparam_names,
@@ -261,6 +267,7 @@ class Fit_LC(Selection):
                     res_params_values = res['parameters']
                     vparam_names = res['vparam_names']
                     covariance = res['covariance']
+                    errors = res['errors']
                     fitstatus = 'fitok'
                     chisq = res.chisq
                     ndof = res.ndof
@@ -284,13 +291,14 @@ class Fit_LC(Selection):
         dict_res = {}
         dict_res['res_param_names'] = res_param_names
         dict_res['res_params_values'] = res_params_values
-        dict_res['vparam_names'] = self.vparam_names
+        dict_res['vparam_names'] = vparam_names
         dict_res['covariance'] = covariance
         dict_res['mbfit'] = mbfit
         dict_res['fitstatus'] = fitstatus
         dict_res['chisq'] = chisq
         dict_res['ndof'] = ndof
         dict_res['fitted_model'] = fitted_model
+        dict_res['errors'] = errors
         if res is not None:
             dict_res['res_errors'] = res.errors
         else:
@@ -336,7 +344,7 @@ class Fit_LC(Selection):
         return None
 
     def _transform(self, meta, par_names, params, vpar_names, covmat,
-                   mbfit, fitstatus, chisq, ndof):
+                   mbfit, fitstatus, chisq, ndof, errors):
         """
         Method to transform input data to a coherent dictionary
 
@@ -360,6 +368,8 @@ class Fit_LC(Selection):
           chi2 value of the fit
         ndof: int
           number of degree of freedom of the fit
+        errors: dict
+         dict of parameter errors
 
         Returns
         ----------
@@ -381,15 +391,18 @@ class Fit_LC(Selection):
         for i in range(len(par_names)):
             res[self.parNames[par_names[i]]+'_fit'] = params[i].item()
 
-            for i, name in enumerate(vpar_names):
-                for j, nameb in enumerate(vpar_names):
-                    if j >= i:
-                        if covmat is not None:
-                            res['Cov_'+self.parNames[name] +
-                                self.parNames[nameb]] = covmat[i, j]
-                        else:
-                            res['Cov_'+self.parNames[name] +
-                                self.parNames[nameb]] = 0.
+        for i, name in enumerate(vpar_names):
+            for j, nameb in enumerate(vpar_names):
+                if j >= i:
+                    if covmat is not None:
+                        res['Cov_'+self.parNames[name] +
+                            self.parNames[nameb]] = covmat[i, j]
+                    else:
+                        res['Cov_'+self.parNames[name] +
+                            self.parNames[nameb]] = 0.
+
+        for name in vpar_names:
+            res['sigma_{}'.format(name)] = errors[name]
 
         res['mbfit'] = mbfit
         res['fitstatus'] = fitstatus
