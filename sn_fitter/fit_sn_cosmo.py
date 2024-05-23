@@ -129,6 +129,8 @@ class Fit_LC(Selection):
         dict_res['fitstatus'] = 'nofit'
         dict_res['chisq'] = 99999.
         dict_res['ndof'] = -1
+        errors = dict(zip(self.vparam_names, [0.]*len(self.vparam_names)))
+        dict_res['errors'] = errors
         meta = None
 
         if lc is None:
