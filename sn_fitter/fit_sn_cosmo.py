@@ -216,7 +216,9 @@ class Fit_LC(Selection):
         res_param_names = ['z', 't0', 'x0', 'x1', 'c']
         res_params_values = np.zeros((5, 1), dtype=float)
         # vparam_names = ['t0', 'x0', 'x1', 'c']
+        vparam_names = self.vparam_names
         nc = len(self.vparam_names)
+        errors = dict(zip(vparam_names, [0.]*len(vparam_names)))
         covariance = np.zeros((nc, nc), dtype=float)
         mbfit = -1.
         z = -1.
