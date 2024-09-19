@@ -88,21 +88,32 @@ class Fit_LC(Selection):
         ozs = [self.oz]
         aerosols = [self.aerosol]
 
-        for am in airmass:
-            for pwv in pwvs:
-                for oz in ozs:
-                    for aero in aerosols:
-                        for band in 'grizy':
-                            name = '{}::{}_{}'.format(
-                                self.telescope.name, band, int(10*am))
-                            self.telescope.load_atmosphere(
-                                am, aero, pwv, oz)
-                            throughput = self.telescope.lsst_atmos_aerosol[band]
-                            bandcosmo = sncosmo.Bandpass(throughput.wavelen,
-                                                         throughput.sb,
-                                                         name=name,
-                                                         wave_unit=u.nm)
-                            sncosmo.registry.register(bandcosmo, force=True)
+        # values in pandas df
+        cols = ['airmass', 'pwv', 'ozone', 'aerosol']
+        vals = [airmass, pwvs, ozs, aerosols]
+        df_dict = {}
+        for tt, val in dict(zip(cols, vals)).items():
+            df_dict[tt] = pd.DataFrame(val, columns=[tt])
+
+        df = df_dict['airmass']
+        for col in cols[1:]:
+            df = df.merge(df_dict[col], how='cross')
+
+        for band in 'grizy':
+            for i, row in df.iterrows():
+                am = row['airmass']
+                aerosol = row['aerosol']
+                pwv = row['pwv']
+                ozone = row['ozone']
+                name = '{}::{}_{}'.format(
+                    self.telescope.name, band, int(10*am))
+                self.telescope.load_atmosphere(am, aerosol, pwv, ozone)
+                throughput = self.telescope.lsst_atmos_aerosol[band]
+                bandcosmo = sncosmo.Bandpass(throughput.wavelen,
+                                             throughput.sb,
+                                             name=name,
+                                             wave_unit=u.nm)
+                sncosmo.registry.register(bandcosmo, force=True)
 
     def register_bands_deprecated(self):
         """
