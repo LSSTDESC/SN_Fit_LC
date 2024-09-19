@@ -31,7 +31,9 @@ class Fit_LC(Selection):
                  snrmin=1, fit_selected=0,
                  vparam_names=['t0', 'x0', 'x1', 'c'],
                  outType='astropyTable', telescope=None,
-                 sigmaz=1.e-5, airmassType='const'):
+                 sigmaz=1.e-5,
+                 airmassType='const', airmass=1.2,
+                 pwv=4.0, oz=300., aerosol=0.0):
         super().__init__(snrmin)
 
         self.bands = bands
@@ -62,6 +64,10 @@ class Fit_LC(Selection):
 
         self.sigmaz = sigmaz
         self.airmassType = airmassType
+        self.airmass = airmass
+        self.pwv = pwv
+        self.oz = oz
+        self.aerosol = aerosol
 
         self.register_bands()
 
@@ -76,6 +82,41 @@ class Fit_LC(Selection):
         """
         # band registery in sncosmo
         from astropy import units as u
+
+        airmass = [self.airmass]
+        pwvs = [self.pwv]
+        ozs = [self.oz]
+        aerosols = [self.aerosol]
+
+        for am in airmass:
+            for pwv in pwvs:
+                for oz in ozs:
+                    for aero in aerosols:
+                        for band in 'grizy':
+                            name = '{}::{}_{}'.format(
+                                self.telescope.name, band, int(10*am))
+                            self.telescope.load_atmosphere(
+                                am, aero, pwv, oz)
+                            throughput = self.telescope.lsst_atmos_aerosol[band]
+                            bandcosmo = sncosmo.Bandpass(throughput.wavelen,
+                                                         throughput.sb,
+                                                         name=name,
+                                                         wave_unit=u.nm)
+                            sncosmo.registry.register(bandcosmo, force=True)
+
+    def register_bands_deprecated(self):
+        """
+        Method to register bands in sncosmo
+
+        Returns
+        -------
+        None.
+
+        """
+        # band registery in sncosmo
+        from astropy import units as u
+        print('boooo', self.telescope.atmosDir)
+
         if self.airmassType != 'const':
             # for various airmass
             for airmass in range(10, 31, 1):

@@ -6,11 +6,12 @@ InstrumentFit name LSST str #instrument name
 InstrumentFit telescope_dir throughputs str #main telescope dir
 InstrumentFit telescope_tag 1.9 str #throughputs tag version
 InstrumentFit throughputDir baseline str #instrument throughput dir
-InstrumentFit atmosDir atmos str #instrument atmos dir
+InstrumentFit atmosDir atmos_new str #instrument atmos dir
 InstrumentFit airmass 1.2 float #instrument airmass
 InstrumentFit airmassType const str #instrument airmass/const/dep
-#InstrumentFit atmos 1 int #instrument atmos
-InstrumentFit aerosol aerosol str #instrument aerosol
+InstrumentFit aerosol 0.0 float #instrument aerosol
+InstrumentFit  pwv 4.0 float #instrument precipit. water vapor
+InstrumentFit oz 300. float #ozone 
 
 ## Simulations ref
 Simulations prodid prodid str # Name of simulation  file

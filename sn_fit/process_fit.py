@@ -41,7 +41,13 @@ class Fitting:
         sigmaz = fitter_config['Fitter']['sigmaz']
         snrmin = LC_sel['snrmin']
         fit_selected = fitter_config['fit']['selected']
-        airmassType = fitter_config['InstrumentFit']['airmassType']
+        config_inst = fitter_config['InstrumentFit']
+        airmassType = config_inst['airmassType']
+        airmass = config_inst['airmass']
+        pwv = config_inst['pwv']
+        oz = config_inst['oz']
+        aerosol = config_inst['aerosol']
+
         self.fitter = module.Fit_LC(
             model=fitter_config['Fitter']['model'],
             version=fitter_config['Fitter']['version'],
@@ -50,7 +56,8 @@ class Fitting:
             vparam_names=par_names,
             telescope=telescope,
             sigmaz=sigmaz,
-            airmassType=airmassType)
+            airmassType=airmassType, airmass=airmass,
+            pwv=pwv, oz=oz, aerosol=aerosol)
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(
