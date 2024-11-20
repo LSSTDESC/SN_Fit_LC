@@ -107,7 +107,8 @@ class Fit_LC(Selection):
                 ozone = row['ozone']
                 name = '{}::{}_{}'.format(
                     self.telescope.name, band, int(10*am))
-                self.telescope.load_atmosphere(am, aerosol, pwv, ozone)
+                self.telescope.load_atmosphere(airmass=am, aerosol=aerosol,
+                                               pwv=pwv, oz=ozone)
                 throughput = self.telescope.lsst_atmos_aerosol[band]
                 bandcosmo = sncosmo.Bandpass(throughput.wavelen,
                                              throughput.sb,
