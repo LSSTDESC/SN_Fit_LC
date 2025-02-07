@@ -17,8 +17,8 @@ class Fitting:
     def __init__(self, fitter_config, covmb=None):
 
         # load instrument
-        from sn_telmodel.sn_telescope import load_telescope_from_config
-        telescope = load_telescope_from_config(
+        from sn_telmodel.sn_throughputs import load_throughputs_from_config
+        telescope = load_throughputs_from_config(
             fitter_config['InstrumentFit'])
         """
         tel_par = fitter_config['InstrumentFit']

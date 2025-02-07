@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from astropy.table import Table
 from sn_fit.sn_utils import Selection
+from sn_tools.sn_utils import register_bands_sncosmo
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -80,8 +81,6 @@ class Fit_LC(Selection):
         None.
 
         """
-        # band registery in sncosmo
-        from astropy import units as u
 
         airmass = [self.airmass]
         pwvs = [self.pwv]
@@ -91,30 +90,42 @@ class Fit_LC(Selection):
         # values in pandas df
         cols = ['airmass', 'pwv', 'ozone', 'aerosol']
         vals = [airmass, pwvs, ozs, aerosols]
-        df_dict = {}
-        for tt, val in dict(zip(cols, vals)).items():
-            df_dict[tt] = pd.DataFrame(val, columns=[tt])
+        df = pd.DataFrame.from_dict(dict(zip(cols, vals)))
+
+        """
+        print(df_dict)
 
         df = df_dict['airmass']
         for col in cols[1:]:
             df = df.merge(df_dict[col], how='cross')
+        """
+        for i, row in df.iterrows():
+            airmass = row['airmass']
+            aerosol = row['aerosol']
+            pwv = row['pwv']
+            ozone = row['ozone']
+            register_bands_sncosmo(sncosmo,
+                                   self.telescope,
+                                   airmass, aerosol, pwv, ozone)
 
+    def register_bands_params(self, airmass, aerosol, pwv, ozone):
+
+        # band registery in sncosmo
+        from astropy import units as u
+
+        self.telescope.new_atmosphere(site_name=self.telescope.site_name,
+                                      airmass=airmass,
+                                      aerosol=aerosol,
+                                      pwv=pwv, oz=ozone)
         for band in 'grizy':
-            for i, row in df.iterrows():
-                am = row['airmass']
-                aerosol = row['aerosol']
-                pwv = row['pwv']
-                ozone = row['ozone']
-                name = '{}::{}_{}'.format(
-                    self.telescope.name, band, int(10*am))
-                self.telescope.load_atmosphere(airmass=am, aerosol=aerosol,
-                                               pwv=pwv, oz=ozone)
-                throughput = self.telescope.lsst_atmos_aerosol[band]
-                bandcosmo = sncosmo.Bandpass(throughput.wavelen,
-                                             throughput.sb,
-                                             name=name,
-                                             wave_unit=u.nm)
-                sncosmo.registry.register(bandcosmo, force=True)
+            name = '{}::{}_{}'.format(
+                self.telescope.site_name, band, int(10*airmass))
+            throughput = self.telescope.throughputs[band]
+            bandcosmo = sncosmo.Bandpass(throughput.wavelen,
+                                         throughput.sb,
+                                         name=name,
+                                         wave_unit=u.nm)
+            sncosmo.registry.register(bandcosmo, force=True)
 
     def register_bands_deprecated(self):
         """
