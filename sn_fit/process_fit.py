@@ -68,9 +68,8 @@ class Fitting:
         self.beta = 3.1
 
         self.val = []
-        self.remove_sat = False
 
-    def __call__(self, lc, j=-1, output_q=None):
+    def __call__(self, lc, params=None, j=-1, output_q=None):
         """
         call method: this is where the fit LC is performed
 
@@ -78,6 +77,8 @@ class Fitting:
         ---------------
         lc: astropy table
           data to fit (LC points)
+        params: dict
+          dict of parameters
         j: int, opt
            internal parameter for multi processing (default: -1)
         output_q: multiprocessing.queue, opt
@@ -89,11 +90,13 @@ class Fitting:
         astropytable with fitted values
 
         """
-
+        remove_sat = False
+        if params is not None:
+            remove_sat = params['remove_sat']
         if 'filter' in lc.columns:
             lc.remove_columns(['filter'])
         # LC fit here
-        resfit = self.fitter(lc, remove_sat=self.remove_sat)
+        resfit = self.fitter(lc, remove_sat=remove_sat)
 
         # estimate mbcov if requested
         if self.mbcalc and resfit:
