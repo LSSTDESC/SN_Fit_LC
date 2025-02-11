@@ -21,6 +21,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'sn_tools>=0.1',
+        'sn_telmodel>=0.1',
         'iminuit>=1.4'
     ],
 )
