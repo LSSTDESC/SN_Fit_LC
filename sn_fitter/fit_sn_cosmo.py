@@ -46,6 +46,10 @@ class Fit_LC(Selection):
         # get the dust
         dustmap = sncosmo.OD94Dust()
 
+        if model == 'salt3':
+            source._wave[0] = 1500.  # used to be 1700
+            source._wave[-1] = 24990.
+
         # sn_fit_model instance
         # self.SN_fit_model = sncosmo.Model(source=source)
         self.SN_fit_model = sncosmo.Model(source=source,
