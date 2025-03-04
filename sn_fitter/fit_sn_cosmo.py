@@ -113,6 +113,25 @@ class Fit_LC(Selection):
                                    airmass, aerosol, pwv, ozone)
 
     def register_bands_params(self, airmass, aerosol, pwv, ozone):
+        """
+        Method to register bands in sncosmo
+
+        Parameters
+        ----------
+        airmass : float
+            airmass value.
+        aerosol : float
+            aerosol value.
+        pwv : float
+            precipitable water vapor value.
+        ozone : float
+            ozone value.
+
+        Returns
+        -------
+        None.
+
+        """
 
         # band registery in sncosmo
         from astropy import units as u
@@ -348,6 +367,7 @@ class Fit_LC(Selection):
                     # print('badfit',res)
                     fitstatus = 'bafit'
             except (RuntimeError, TypeError, NameError) as err:
+                print('crash fit', err)
                 fitstatus = 'crash'
                 # set the simulation values here
                 if meta['sn_type'] == 'SN_Ia':
