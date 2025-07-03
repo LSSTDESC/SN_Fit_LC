@@ -94,8 +94,10 @@ class Fitting:
         remove_sat = False
         if params is not None:
             remove_sat = params['remove_sat']
+        """
         if 'filter' in lc.columns:
             lc.remove_columns(['filter'])
+        """
         # LC fit here
         resfit = self.fitter(lc, remove_sat=remove_sat)
 

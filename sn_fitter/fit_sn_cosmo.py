@@ -4,6 +4,7 @@ import pandas as pd
 from astropy.table import Table
 from sn_fit.sn_utils import Selection
 from sn_tools.sn_utils import register_bands_sncosmo
+from sn_tools.sn_utils import register_bands_sncosmo_new
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -149,6 +150,32 @@ class Fit_LC(Selection):
                                          name=name,
                                          wave_unit=u.nm)
             sncosmo.registry.register(bandcosmo, force=True)
+            
+    def register_bands_on_the_fly(self, telescope, data):
+        """
+        Method to register bands on sncosmo
+    
+        Parameters
+        ----------
+        data: pandas df
+            data to register
+    
+        Returns
+        -------
+        None.
+    
+        """
+        
+        for i, row in data.iterrows():
+            bandname = row['band_cosmo']
+            band = row['filter']
+            airmass = row['airmass']
+            pwv = row['pwv']
+            ozone = row['ozone']
+            aerosol = row['aerosol']
+            register_bands_sncosmo_new(sncosmo,telescope,
+                                       bandname,band,
+                                       airmass,pwv,ozone,aerosol)
 
     def register_bands_deprecated(self):
         """
@@ -317,8 +344,10 @@ class Fit_LC(Selection):
         fitted_model = None
         res = None
 
+        """
         if 'filter' in lc.columns and 'band' in lc.columns:
             del lc['filter']
+        """
 
         # set redshift for the fit
         z = meta['z']
@@ -340,8 +369,19 @@ class Fit_LC(Selection):
 
         if select_lc is not None:
             try:
+                #register bands in sn_cosmo here
+                the_data = select_lc[['band_cosmo',
+                           'band',
+                           'airmass',
+                           'pwv','ozone','aerosol','filter']].to_pandas()
+                self.register_bands_on_the_fly(self.telescope,the_data)
+                
+                
                 # fit here
                 selfit = select_lc.copy()
+
+                if 'filter' in selfit.columns and 'band' in selfit.columns:
+                    del selfit['filter']
 
                 idx = selfit['fluxerr'] > 0.
                 idx &= selfit['flux'] >= 0.
