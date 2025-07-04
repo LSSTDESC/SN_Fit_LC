@@ -4,7 +4,6 @@ import pandas as pd
 from astropy.table import Table
 from sn_fit.sn_utils import Selection
 from sn_tools.sn_utils import register_bands_sncosmo
-from sn_tools.sn_utils import register_bands_sncosmo_new
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -75,7 +74,7 @@ class Fit_LC(Selection):
         self.oz = oz
         self.aerosol = aerosol
 
-        self.register_bands()
+        # self.register_bands()
 
     def register_bands(self):
         """
@@ -86,7 +85,7 @@ class Fit_LC(Selection):
         None.
 
         """
-
+        from sn_tools.sn_utils import register_bands_sncosmo_old
         airmass = [self.airmass]
         pwvs = [self.pwv]
         ozs = [self.oz]
@@ -109,9 +108,9 @@ class Fit_LC(Selection):
             aerosol = row['aerosol']
             pwv = row['pwv']
             ozone = row['ozone']
-            register_bands_sncosmo(sncosmo,
-                                   self.telescope,
-                                   airmass, aerosol, pwv, ozone)
+            register_bands_sncosmo_old(sncosmo,
+                                       self.telescope,
+                                       airmass, aerosol, pwv, ozone)
 
     def register_bands_params(self, airmass, aerosol, pwv, ozone):
         """
@@ -150,22 +149,24 @@ class Fit_LC(Selection):
                                          name=name,
                                          wave_unit=u.nm)
             sncosmo.registry.register(bandcosmo, force=True)
-            
+
     def register_bands_on_the_fly(self, telescope, data):
         """
         Method to register bands on sncosmo
-    
+
         Parameters
         ----------
+        telescope: Telescope class
+            telescope to use
         data: pandas df
             data to register
-    
+
         Returns
         -------
         None.
-    
+
         """
-        
+
         for i, row in data.iterrows():
             bandname = row['band_cosmo']
             band = row['filter']
@@ -173,9 +174,9 @@ class Fit_LC(Selection):
             pwv = row['pwv']
             ozone = row['ozone']
             aerosol = row['aerosol']
-            register_bands_sncosmo_new(sncosmo,telescope,
-                                       bandname,band,
-                                       airmass,pwv,ozone,aerosol)
+            register_bands_sncosmo(sncosmo, telescope,
+                                   bandname, band,
+                                   airmass, pwv, ozone, aerosol)
 
     def register_bands_deprecated(self):
         """
@@ -369,14 +370,13 @@ class Fit_LC(Selection):
 
         if select_lc is not None:
             try:
-                #register bands in sn_cosmo here
+                # register bands in sn_cosmo here
                 the_data = select_lc[['band_cosmo',
-                           'band',
-                           'airmass',
-                           'pwv','ozone','aerosol','filter']].to_pandas()
-                self.register_bands_on_the_fly(self.telescope,the_data)
-                
-                
+                                      'band',
+                                      'airmass',
+                                      'pwv', 'ozone', 'aerosol', 'filter']].to_pandas()
+                self.register_bands_on_the_fly(self.telescope, the_data)
+
                 # fit here
                 selfit = select_lc.copy()
 
