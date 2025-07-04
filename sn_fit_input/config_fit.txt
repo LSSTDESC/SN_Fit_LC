@@ -11,7 +11,7 @@ InstrumentFit airmass 1.2 float #instrument airmass
 InstrumentFit airmassType const str #instrument airmass/const/dep
 InstrumentFit aerosol 0.0 float #instrument aerosol
 InstrumentFit  pwv 4.0 float #instrument precipit. water vapor
-InstrumentFit oz 300. float #ozone 
+InstrumentFit ozone 300. float #ozone 
 
 ## Simulations ref
 Simulations prodid prodid str # Name of simulation  file

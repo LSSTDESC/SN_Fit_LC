@@ -46,7 +46,7 @@ class Fitting:
         airmassType = config_inst['airmassType']
         airmass = config_inst['airmass']
         pwv = config_inst['pwv']
-        oz = config_inst['oz']
+        ozone = config_inst['ozone']
         aerosol = config_inst['aerosol']
 
         self.fitter = module.Fit_LC(
@@ -58,7 +58,7 @@ class Fitting:
             telescope=telescope,
             sigmaz=sigmaz,
             airmassType=airmassType, airmass=airmass,
-            pwv=pwv, oz=oz, aerosol=aerosol)
+            pwv=pwv, ozone=ozone, aerosol=aerosol)
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(

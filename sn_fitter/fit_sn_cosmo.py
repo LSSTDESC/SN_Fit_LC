@@ -34,7 +34,7 @@ class Fit_LC(Selection):
                  outType='astropyTable', telescope=None,
                  sigmaz=1.e-5,
                  airmassType='const', airmass=1.2,
-                 pwv=4.0, oz=300., aerosol=0.0):
+                 pwv=4.0, ozone=300., aerosol=0.0):
         super().__init__(snrmin)
 
         self.bands = bands
@@ -71,7 +71,7 @@ class Fit_LC(Selection):
         self.airmassType = airmassType
         self.airmass = airmass
         self.pwv = pwv
-        self.oz = oz
+        self.ozone = ozone
         self.aerosol = aerosol
 
         # self.register_bands()
@@ -88,7 +88,7 @@ class Fit_LC(Selection):
         from sn_tools.sn_utils import register_bands_sncosmo_old
         airmass = [self.airmass]
         pwvs = [self.pwv]
-        ozs = [self.oz]
+        ozs = [self.ozone]
         aerosols = [self.aerosol]
 
         # values in pandas df
@@ -139,7 +139,7 @@ class Fit_LC(Selection):
         self.telescope.new_atmosphere(site_name=self.telescope.site_name,
                                       airmass=airmass,
                                       aerosol=aerosol,
-                                      pwv=pwv, oz=ozone)
+                                      pwv=pwv, ozone=ozone)
         for band in 'grizy':
             name = '{}::{}_{}'.format(
                 self.telescope.site_name, band, int(10*airmass))
