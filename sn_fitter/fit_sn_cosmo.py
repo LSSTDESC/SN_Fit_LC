@@ -1,9 +1,8 @@
-import sncosmo
+# import sncosmo
 import numpy as np
 import pandas as pd
 from astropy.table import Table
 from sn_fit.sn_utils import Selection
-from sn_tools.sn_utils import register_bands_sncosmo
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -27,24 +26,25 @@ class Fit_LC(Selection):
 
     """
 
-    def __init__(self, model='salt2-extended', version=1.0,
+    def __init__(self, sncosmo_emul, model='salt2-extended', version=1.0,
                  bands='ugrizy',
                  snrmin=1, fit_selected=0,
                  vparam_names=['t0', 'x0', 'x1', 'c'],
                  outType='astropyTable', telescope=None,
-                 sigmaz=1.e-5,
-                 airmassType='const', airmass=1.2,
-                 pwv=4.0, ozone=300., aerosol=0.0):
+                 sigmaz=1.e-5):
+        # airmassType='const', airmass=1.2,
+        # pwv=4.0, ozone=300., aerosol=0.0):
         super().__init__(snrmin)
 
+        self.sncosmo = sncosmo_emul
         self.bands = bands
         self.fit_selected = fit_selected
         self.outType = outType
 
         # get the source
-        source = sncosmo.get_source(model, version=str(version))
+        source = self.sncosmo.get_source(model, version=str(version))
         # get the dust
-        dustmap = sncosmo.OD94Dust()
+        dustmap = self.sncosmo.OD94Dust()
 
         if model == 'salt3':
             source._wave[0] = 1500.  # used to be 1700
@@ -52,10 +52,10 @@ class Fit_LC(Selection):
 
         # sn_fit_model instance
         # self.SN_fit_model = sncosmo.Model(source=source)
-        self.SN_fit_model = sncosmo.Model(source=source,
-                                          effects=[dustmap, dustmap],
-                                          effect_names=['host', 'mw'],
-                                          effect_frames=['rest', 'obs'])
+        self.SN_fit_model = self.sncosmo.Model(source=source,
+                                               effects=[dustmap, dustmap],
+                                               effect_names=['host', 'mw'],
+                                               effect_frames=['rest', 'obs'])
 
         # parameters to fit
         self.vparam_names = vparam_names
@@ -68,15 +68,16 @@ class Fit_LC(Selection):
         self.telescope = telescope
 
         self.sigmaz = sigmaz
+        """
         self.airmassType = airmassType
         self.airmass = airmass
         self.pwv = pwv
         self.ozone = ozone
         self.aerosol = aerosol
-
+        """
         # self.register_bands()
 
-    def register_bands(self):
+    def register_bands_deprecated(self):
         """
         Method to register bands in sncosmo
 
@@ -112,7 +113,7 @@ class Fit_LC(Selection):
                                        self.telescope,
                                        airmass, aerosol, pwv, ozone)
 
-    def register_bands_params(self, airmass, aerosol, pwv, ozone):
+    def register_bands_params_deprecated(self, airmass, aerosol, pwv, ozone):
         """
         Method to register bands in sncosmo
 
@@ -150,7 +151,7 @@ class Fit_LC(Selection):
                                          wave_unit=u.nm)
             sncosmo.registry.register(bandcosmo, force=True)
 
-    def register_bands_on_the_fly(self, telescope, data):
+    def register_bands_on_the_fly_deprecated(self, telescope, data):
         """
         Method to register bands on sncosmo
 
@@ -370,13 +371,17 @@ class Fit_LC(Selection):
 
         if select_lc is not None:
             try:
+                """
                 # register bands in sn_cosmo here
                 the_data = select_lc[['band_cosmo',
                                       'band',
                                       'airmass',
                                       'pwv', 'ozone', 'aerosol', 'filter']].to_pandas()
+                import time
+                time_ref = time.time()
                 self.register_bands_on_the_fly(self.telescope, the_data)
-
+                print('after registry', time.time()-time_ref)
+                """
                 # fit here
                 selfit = select_lc.copy()
 
@@ -386,7 +391,7 @@ class Fit_LC(Selection):
                 idx = selfit['fluxerr'] > 0.
                 idx &= selfit['flux'] >= 0.
                 selfit = selfit[idx]
-                res, fitted_model = sncosmo.fit_lc(
+                res, fitted_model = self.sncosmo.fit_lc(
                     selfit, model=self.SN_fit_model,
                     vparam_names=self.vparam_names,
                     bounds=bounds, minsnr=self.snrmin)
@@ -467,11 +472,12 @@ class Fit_LC(Selection):
 
         if len(select) >= 1:
             if fitstatus == 'fitok':
-                fig = sncosmo.plot_lc(select, model=fitted_model,
-                                      errors=errors, xfigsize=10, pulls=False,
-                                      figtext=figtext)
+                fig = self.sncosmo.plot_lc(select, model=fitted_model,
+                                           errors=errors, xfigsize=10, pulls=False,
+                                           figtext=figtext)
             else:
-                fig = sncosmo.plot_lc(select, xfigsize=10, figtext=figtext)
+                fig = self.sncosmo.plot_lc(
+                    select, xfigsize=10, figtext=figtext)
             return fig
         return None
 
@@ -660,14 +666,14 @@ class Fit_LC(Selection):
         z = table.meta['z']
 
         print('plotting')
-        model = sncosmo.Model('salt2')
+        model = self.sncosmo.Model('salt2')
         model.set(z=z,
                   c=color,
                   t0=daymax,
                   # x0=x0,
                   x1=x1)
 
-        sncosmo.plot_lc(data=table)
+        self.sncosmo.plot_lc(data=table)
 
         plt.draw()
         plt.pause(time_display)

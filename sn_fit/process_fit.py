@@ -2,6 +2,9 @@
 from importlib import import_module
 import os
 import h5py
+from astropy.table import Table, vstack, unique
+import sncosmo as sncosmo_emul
+from sn_tools.sn_utils import register_bands_sncosmo
 
 
 class Fitting:
@@ -19,7 +22,7 @@ class Fitting:
 
         # load instrument
         from sn_telmodel.sn_throughputs import load_throughputs_from_config
-        telescope = load_throughputs_from_config(
+        self.telescope = load_throughputs_from_config(
             fitter_config['InstrumentFit'])
         """
         tel_par = fitter_config['InstrumentFit']
@@ -49,16 +52,14 @@ class Fitting:
         ozone = config_inst['ozone']
         aerosol = config_inst['aerosol']
 
-        self.fitter = module.Fit_LC(
-            model=fitter_config['Fitter']['model'],
-            version=fitter_config['Fitter']['version'],
-            snrmin=snrmin,
-            fit_selected=fit_selected,
-            vparam_names=par_names,
-            telescope=telescope,
-            sigmaz=sigmaz,
-            airmassType=airmassType, airmass=airmass,
-            pwv=pwv, ozone=ozone, aerosol=aerosol)
+        self.fitter = module.Fit_LC(sncosmo_emul,
+                                    model=fitter_config['Fitter']['model'],
+                                    version=fitter_config['Fitter']['version'],
+                                    snrmin=snrmin,
+                                    fit_selected=fit_selected,
+                                    vparam_names=par_names,
+                                    telescope=self.telescope,
+                                    sigmaz=sigmaz)
 
         if fitter_config['OutputFit']['save']:
             self.prepareSave(
@@ -280,7 +281,17 @@ class Fitting:
 
         from astropy.table import Table, vstack
         res = Table()
-        # print('processing fit', j)
+
+        # register bands in sn_cosmo here (gain time)
+        tt = Table()
+        ccols = ['band_cosmo', 'band', 'airmass',
+                 'pwv', 'ozone', 'aerosol', 'filter']
+        for lc in lc_list:
+            tt = vstack([tt, lc[ccols]], metadata_conflicts='silent')
+
+        tt = unique(tt)
+
+        self.register_bands_on_the_fly(tt.to_pandas())
 
         for lc in lc_list:
             lc.convert_bytestring_to_unicode()
@@ -324,3 +335,31 @@ class Fitting:
                         sn.rename_column(vvb, vva)
 
         return sn
+
+    def register_bands_on_the_fly(self, data):
+        """
+        Method to register bands on sncosmo
+
+        Parameters
+        ----------
+        telescope: Telescope class
+            telescope to use
+        data: pandas df
+            data to register
+
+        Returns
+        -------
+        None.
+
+        """
+
+        for i, row in data.iterrows():
+            bandname = row['band_cosmo']
+            band = row['filter']
+            airmass = row['airmass']
+            pwv = row['pwv']
+            ozone = row['ozone']
+            aerosol = row['aerosol']
+            register_bands_sncosmo(sncosmo_emul, self.telescope,
+                                   bandname, band,
+                                   airmass, pwv, ozone, aerosol)
