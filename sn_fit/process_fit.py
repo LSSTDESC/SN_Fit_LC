@@ -5,7 +5,8 @@ import h5py
 from astropy.table import Table, vstack, unique
 import sncosmo as sncosmo_emul
 from sn_tools.sn_utils import register_bands_sncosmo
-
+import numpy as np
+import pandas as pd
 
 class Fitting:
     """
@@ -37,25 +38,22 @@ class Fitting:
         self.covmb = covmb
         display_lc = fitter_config['Display']
         LC_sel = fitter_config['LCSelection']
+        
 
         module = import_module(fitter_config['Fitter']['name'])
 
         # fit instance
         par_names = fitter_config['Fitter']['parnames'].split(',')
         sigmaz = fitter_config['Fitter']['sigmaz']
-        snrmin = LC_sel['snrmin']
+        self.snrmin = LC_sel['snrmin']
         fit_selected = fitter_config['fit']['selected']
-        config_inst = fitter_config['InstrumentFit']
-        airmassType = config_inst['airmassType']
-        airmass = config_inst['airmass']
-        pwv = config_inst['pwv']
-        ozone = config_inst['ozone']
-        aerosol = config_inst['aerosol']
-
+        #config_inst = fitter_config['InstrumentFit']
+        self.fit_coadded = fitter_config['fit']['coadded']
+        
         self.fitter = module.Fit_LC(sncosmo_emul,
                                     model=fitter_config['Fitter']['model'],
                                     version=fitter_config['Fitter']['version'],
-                                    snrmin=snrmin,
+                                    snrmin=self.snrmin,
                                     fit_selected=fit_selected,
                                     vparam_names=par_names,
                                     telescope=self.telescope,
@@ -280,19 +278,24 @@ class Fitting:
         """
 
         from astropy.table import Table, vstack
+        
+
+        # coadd if requested
+        import time
+        time_ref = time.time()
+        if self.fit_coadded:
+            lc_list = self.coadd_lcs(lc_list)
+
+        print('coadd',time.time()-time_ref)
+        # register bands in sn_cosmo here (gain time)
+        
+        time_ref = time.time()
+        self.register_bands(lc_list)
+        print('registry',time.time()-time_ref)
+        #loop on lc_list and fit
         res = Table()
 
-        # register bands in sn_cosmo here (gain time)
-        tt = Table()
-        ccols = ['band_cosmo', 'band', 'airmass',
-                 'pwv', 'ozone', 'aerosol', 'filter']
-        for lc in lc_list:
-            tt = vstack([tt, lc[ccols]], metadata_conflicts='silent')
-
-        tt = unique(tt)
-
-        self.register_bands_on_the_fly(tt.to_pandas())
-
+        
         for lc in lc_list:
             lc.convert_bytestring_to_unicode()
             resfit = self.fit_lc(lc, params)
@@ -304,6 +307,149 @@ class Fitting:
             return output_q.put({j: res})
         else:
             return res
+
+
+    def coadd_lcs(self,lc_list):
+        """
+        Method to coadd list of lcs
+
+        Parameters
+        ----------
+        lc_list : list(lc)
+            LC list.
+
+        Returns
+        -------
+        res: list(LC)
+          list of coadded lcs
+
+        """
+        
+        
+        ccols=['night','airmass','ozone','aerosol','mean_wave','band',
+               'pwv','zp','time','band_cosmo','zpsys','flux','fluxerr',
+               'snr_m5','snr','filter','sat','phase']
+        
+        
+        lc_res = []
+        for lc in lc_list:
+            # SNR selection
+            idx = lc['snr'] >= self.snrmin
+            sel = lc[idx]
+            df = sel[ccols].to_pandas()
+            dfb = df.groupby(['filter','night']).apply(lambda x: self.coadd_lc(x)).reset_index()
+            dfb['band_cosmo'] = self.telescope.site_name+'::' + \
+                        dfb['filter']+'_' + \
+                        dfb['airmass'].astype(str)+'_' + \
+                        dfb['pwv'].astype(str)+'_' + \
+                        dfb['ozone'].astype(str)+'_' +\
+                        dfb['aerosol'].astype(str)
+            dfb['band'] = dfb['band_cosmo']
+            rr = Table.from_pandas(dfb)
+            rr.meta = lc.meta
+            lc_res.append(rr)
+            
+        return lc_res
+            
+            
+
+    def coadd_lc(self,grp,
+                 col_means_weighted=[('flux','fluxerr')],
+                 col_means=['airmass','pwv','ozone',
+                            'aerosol','mean_wave','zp','time'],
+                 col_round = ['airmass','pwv','ozone',
+                            'aerosol','zp','mean_wave'],
+                 round_vals=[1,1,1,1,2,2],
+                 col_unique=['zpsys']):
+        """
+        Method to coadd light-curve points per night/filter
+
+        Parameters
+        ----------
+        grp : pandas df
+            Data to process.
+        col_means_weighted : list(str), optional
+            list of cols for weighted mean estimation. 
+            The default is [('flux','fluxerr')].
+        col_means : list(str), optional
+            list of cols for mean estimation. 
+            The default is ['airmass','pwv','ozone','aerosol',
+                            'mean_wave','zp','time'].
+        col_round : list(str), optional
+            list of cols to round. 
+            The default is ['airmass','pwv','ozone',
+                            'aerosol','zp','mean_wave'].
+        round_vals : list(int), optional
+            list of rounding values corresponding to col_round. 
+            The default is [2,1,1,1,2,2].
+        col_unique : list(str), optional
+            list of cols with unique value. The default is ['zpsys'].
+
+        Returns
+        -------
+        astropy table
+        output value
+
+        """
+        
+        
+        grp['weight_flux'] = 1./grp['fluxerr']**2
+        
+
+        dictout = {}
+        for vv in col_means_weighted:
+            pp = vv[0]
+            pp_weight = 'weight_{}'.format(pp)
+            weight_sum = np.sum(grp[pp_weight])
+            mean_weighted= np.sum(grp[pp]*grp[pp_weight])/weight_sum
+            dictout[pp] = [mean_weighted]
+            dictout[vv[1]] = [1./np.sqrt(weight_sum)]
+        
+        for vv in col_means:
+            val= grp[vv].mean()
+            if vv in col_round:
+                idx = col_round.index(vv)
+                val = np.round(val,round_vals[idx])
+        
+            dictout[vv] = [val]
+            
+        for vv in col_unique:
+            dictout[vv] = grp[vv].unique().tolist()
+            
+
+        res_df = pd.DataFrame.from_dict(dictout)
+        res_df['snr'] = res_df['flux']/res_df['fluxerr']
+
+        return res_df
+
+    def register_bands(self,lc_list):
+        """
+        Method to register bands in sncosmo
+
+        Parameters
+        ----------
+        lc_list : list(LC)
+            List of light curves to fit.
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        
+        
+        tt = Table()
+        ccols = ['band_cosmo', 'band', 'airmass',
+                  'pwv', 'ozone', 'aerosol', 'filter']
+        for lc in lc_list:
+            tt = vstack([tt, lc[ccols]], metadata_conflicts='silent')
+        
+        tt = unique(tt)
+        
+        self.register_bands_on_the_fly(tt.to_pandas())        
+        
+        
 
     def check_correct(self, sn):
         """
