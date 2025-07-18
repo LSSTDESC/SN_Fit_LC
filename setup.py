@@ -14,7 +14,7 @@ setup(
     author='Philippe Gris',
     author_email='philippe.gris@clermont.in2p3.fr',
     license='BSD',
-    packages=['sn_fit', 'sn_fitter', 'sn_fit_input'],
+    packages=['sn_fit', 'sn_fitter', 'sn_fit_input', 'sn_fit_wrapper'],
     # All files from folder sn_fit_input
     package_data={'sn_fit_input': ['*.txt']},
     python_requires='>=3.5',
