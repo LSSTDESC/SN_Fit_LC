@@ -301,9 +301,11 @@ class Fitting:
         for lc in lc_list:
             time_ref = time.time()
             # self.register_band(lc)
+            # print(
+            # 'fitting', lc[['band_cosmo', 'airmass', 'pwv', 'ozone', 'aerosol']])
             lc.convert_bytestring_to_unicode()
             resfit = self.fit_lc(lc, params)
-            print('after fit', j, len(lc), time.time()-time_ref)
+            # print('after fit', j, len(lc), time.time()-time_ref)
             if resfit is not None:
                 resfit = self.check_correct(resfit)
                 res = vstack([res, resfit])
@@ -338,11 +340,19 @@ class Fitting:
                  'pwv', 'zp', 'time', 'band_cosmo', 'zpsys', 'flux', 'fluxerr',
                  'snr_m5', 'snr', 'filter', 'sat', 'phase']
 
+        mycols = ['flux', 'fluxerr', 'airmass',
+                  'pwv', 'ozone', 'aerosol', 'filter', 'zp']
+
         lc_res = []
         for lc in lc_list:
             # SNR selection
             idx = lc['snr'] >= self.snrmin
             sel = lc[idx]
+            """
+            print('before coadd', len(sel))
+            print(sel[mycols])
+            rra = sel[mycols].to_pandas()
+            """
             if self.fit_coadded:
                 df = sel[ccols].to_pandas()
                 dfb = df.groupby(['filter', 'night']).apply(
@@ -358,11 +368,26 @@ class Fitting:
                 sel = sel[idx]
                 sel = Table.from_pandas(dfb)
                 sel.meta = lc.meta
+                """
+                print('after coadd', len(sel))
+                print(sel[mycols])
+                rrb = sel[mycols].to_pandas()
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                ax.hist(rra['flux'], histtype='step', bins=20)
+                ax.hist(rrb['flux'], histtype='step', bins=20)
+                figb, axb = plt.subplots()
+                axb.hist(rra['zp'], histtype='step', bins=40)
+                axb.hist(rrb['zp'], histtype='step', bins=40)
+                plt.show()
+                """
+
             lc_res.append(sel)
 
         time_ref = time.time()
+
         self.register_bands(lc_res)
-        print('registry', time.time()-time_ref)
+        # print('registry', time.time()-time_ref)
 
         return lc_res
 
@@ -412,8 +437,8 @@ class Fitting:
                  col_means=['airmass', 'pwv', 'ozone',
                             'aerosol', 'mean_wave', 'zp', 'time'],
                  col_round=['airmass', 'pwv', 'ozone',
-                            'aerosol', 'zp', 'mean_wave'],
-                 round_vals=[1, 1, 1, 1, 2, 2],
+                            'aerosol'],
+                 round_vals=[1, 1, 1, 1],
                  col_unique=['zpsys']):
         """
         Method to coadd light-curve points per night/filter

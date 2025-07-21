@@ -37,9 +37,17 @@ class FitWrapper:
 
         self.prodid = config['Simulations']['prodid']
 
+        self.ccolref = []
+
         if self.saveData:
             from sn_tools.sn_io import checkDir
             checkDir(self.outDir)
+            outFile = 'SN_{}.hdf5'.format(self.prodid)
+            self.outName = '{}/{}'.format(self.outDir, outFile)
+            # check wether this file already exist and remove it
+            import os
+            if os.path.isfile(self.outName):
+                os.system('rm {}'.format(self.outName))
 
     def __call__(self, lc_list, remove_sat=False):
         """
@@ -166,3 +174,52 @@ class FitWrapper:
                         sn.rename_column(vvb, vva)
 
         return sn
+
+    def dump(self, fitlc):
+        """
+
+
+        Parameters
+        ----------
+        fitlc : pandas df
+            data to dump
+
+        Returns
+        -------
+        None.
+
+        """
+        """
+        if self.outName != '':
+            keyhdf = '{}'.format(int(sn['healpixID'].mean()))
+            sn.write(self.outName, keyhdf, append=True, compression=True)
+        """
+        import pandas as pd
+        if self.saveData:
+            fitlc.convert_bytestring_to_unicode()
+            df = pd.DataFrame(fitlc.to_pandas())
+
+            if 'selected' in df.columns:
+                df = df.drop(columns=['selected'])
+
+            if not self.ccolref:
+                self.ccolref = df.columns.to_list()
+            else:
+                df = df.reindex(columns=self.ccolref)
+
+            """
+            print('chisq', df['chisq'])
+            for vv in df.columns:
+                print(vv, df[vv].dtype)
+            """
+            """
+            for vv in self.ccolref:
+                print(vv, df[vv].dtype)
+            """
+            """
+            cols = ['sn_type', 'sn_model', 'sn_version', 'fitstatus']
+
+            print(df['fitstatus'].unique(), df['SNID'].unique())
+            """
+
+            df.to_hdf(self.outName, key='SN', append=True)
