@@ -345,6 +345,8 @@ class Fitting:
 
         lc_res = []
         for lc in lc_list:
+            if len(lc) == 0:
+                continue
             # SNR selection
             idx = lc['snr'] >= self.snrmin
             sel = lc[idx]
