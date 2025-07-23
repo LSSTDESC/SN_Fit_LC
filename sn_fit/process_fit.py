@@ -280,10 +280,13 @@ class Fitting:
         from astropy.table import Table, vstack
 
         # coadd if requested
+        """
         import time
         time_ref = time.time()
-
+        """
+        
         lc_list = self.prepare_for_fit(lc_list)
+        
         """
         if self.fit_coadded:
             lc_list = self.coadd_lcs(lc_list)
@@ -299,7 +302,7 @@ class Fitting:
         res = Table()
 
         for lc in lc_list:
-            time_ref = time.time()
+            #time_ref = time.time()
             # self.register_band(lc)
             # print(
             # 'fitting', lc[['band_cosmo', 'airmass', 'pwv', 'ozone', 'aerosol']])
@@ -386,9 +389,10 @@ class Fitting:
 
             lc_res.append(sel)
 
-        time_ref = time.time()
+        #time_ref = time.time()
 
-        self.register_bands(lc_res)
+        if len(lc_res) > 0:
+            self.register_bands(lc_res)
         # print('registry', time.time()-time_ref)
 
         return lc_res
@@ -530,7 +534,8 @@ class Fitting:
         for lc in lc_list:
             tt = vstack([tt, lc[ccols]], metadata_conflicts='silent')
 
-        tt = unique(tt)
+        if len(tt) > 1:
+            tt = unique(tt)
 
         self.register_bands_on_the_fly(tt.to_pandas())
 
