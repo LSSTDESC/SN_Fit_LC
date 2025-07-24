@@ -284,9 +284,9 @@ class Fitting:
         import time
         time_ref = time.time()
         """
-        
+
         lc_list = self.prepare_for_fit(lc_list)
-        
+
         """
         if self.fit_coadded:
             lc_list = self.coadd_lcs(lc_list)
@@ -302,9 +302,8 @@ class Fitting:
         res = Table()
 
         for lc in lc_list:
-            #time_ref = time.time()
+            # time_ref = time.time()
             # self.register_band(lc)
-            # print(
             # 'fitting', lc[['band_cosmo', 'airmass', 'pwv', 'ozone', 'aerosol']])
             lc.convert_bytestring_to_unicode()
             resfit = self.fit_lc(lc, params)
@@ -389,7 +388,7 @@ class Fitting:
 
             lc_res.append(sel)
 
-        #time_ref = time.time()
+        # time_ref = time.time()
 
         if len(lc_res) > 0:
             self.register_bands(lc_res)
