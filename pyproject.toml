@@ -14,7 +14,7 @@ maintainers = [
   {name = "Philippe Gris", email = "philippe.gris@clermont.in2p3.fr"}
 ]
 description = "Light curve fitting for SNe Ia"
-readme = "README.rst"
+readme = "README.md"
 license = {file = "LICENCE"}
 classifiers = ["Programming Language :: Python",]
 
