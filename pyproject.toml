@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sn_fit_lc"
+version = "1.0.0"
+requires-python = ">=3.5"
+dependencies = ['sn_tools>=0.1','sn_telmodel>=0.1','iminuit>=1.4',]
+authors = [
+  {name = "Philippe Gris", email = "philippe.gris@clermont.in2p3.fr"},
+]
+maintainers = [
+  {name = "Philippe Gris", email = "philippe.gris@clermont.in2p3.fr"}
+]
+description = "Light curve fitting for SNe Ia"
+readme = "README.rst"
+license = {file = "LICENCE"}
+classifiers = ["Programming Language :: Python",]
+
+[tool.setuptools.packages.find]
+where = [".","sn_fit_input"]
+include = ['sn_fit', 'sn_fitter', 'sn_fit_wrapper','sn_fit_input']
+
+[tool.setuptools.package-data]
+"*" = ["*.txt"]
+
+[project.urls]
+Homepage = "http://github.com/lsstdesc/sn_fit_lc"
+Repository = "https://github.com/lsstdesc/sn_fit_lc"
