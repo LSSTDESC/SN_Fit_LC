@@ -391,10 +391,12 @@ class Fit_LC(Selection):
                 idx = selfit['fluxerr'] > 0.
                 idx &= selfit['flux'] >= 0.
                 selfit = selfit[idx]
+
                 res, fitted_model = self.sncosmo.fit_lc(
                     selfit, model=self.SN_fit_model,
                     vparam_names=self.vparam_names,
                     bounds=bounds, minsnr=self.snrmin)
+
                 # get parameters
                 if res['success']:
                     mbfit = fitted_model._source.peakmag(

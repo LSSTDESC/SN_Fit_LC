@@ -352,26 +352,17 @@ class Fitting:
             # SNR selection
             idx = lc['snr'] >= self.snrmin
             sel = lc[idx]
+
             """
             print('before coadd', len(sel))
             print(sel[mycols])
             rra = sel[mycols].to_pandas()
             """
+
             if self.fit_coadded:
-                df = sel[ccols].to_pandas()
-                dfb = df.groupby(['filter', 'night']).apply(
-                    lambda x: self.coadd_lc(x)).reset_index()
-                dfb['band_cosmo'] = self.telescope.site_name+'::' + \
-                    dfb['filter']+'_' + \
-                    dfb['airmass'].astype(str)+'_' + \
-                    dfb['pwv'].astype(str)+'_' + \
-                    dfb['ozone'].astype(str)+'_' +\
-                    dfb['aerosol'].astype(str)
-                dfb['band'] = dfb['band_cosmo']
-                idx = sel['snr'] >= self.snrmin
-                sel = sel[idx]
-                sel = Table.from_pandas(dfb)
-                sel.meta = lc.meta
+                from sn_tools.sn_lcana import coadd_lc
+                sel = coadd_lc(sel)
+
                 """
                 print('after coadd', len(sel))
                 print(sel[mycols])
@@ -385,7 +376,6 @@ class Fitting:
                 axb.hist(rrb['zp'], histtype='step', bins=40)
                 plt.show()
                 """
-
             lc_res.append(sel)
 
         # time_ref = time.time()
@@ -396,7 +386,7 @@ class Fitting:
 
         return lc_res
 
-    def coadd_lcs(self, lc_list):
+    def coadd_lcs_deprecated(self, lc_list):
         """
         Method to coadd list of lcs
 
@@ -437,14 +427,14 @@ class Fitting:
 
         return lc_res
 
-    def coadd_lc(self, grp,
-                 col_means_weighted=[('flux', 'fluxerr')],
-                 col_means=['airmass', 'pwv', 'ozone',
-                            'aerosol', 'mean_wave', 'zp', 'time'],
-                 col_round=['airmass', 'pwv', 'ozone',
-                            'aerosol'],
-                 round_vals=[1, 1, 1, 1],
-                 col_unique=['zpsys']):
+    def coadd_lc_deprecated(self, grp,
+                            col_means_weighted=[('flux', 'fluxerr')],
+                            col_means=['airmass', 'pwv', 'ozone',
+                                       'aerosol', 'mean_wave', 'zp', 'time'],
+                            col_round=['airmass', 'pwv', 'ozone',
+                                       'aerosol'],
+                            round_vals=[1, 1, 1, 1],
+                            col_unique=['zpsys']):
         """
         Method to coadd light-curve points per night/filter
 
@@ -605,6 +595,7 @@ class Fitting:
             pwv = row['pwv']
             ozone = row['ozone']
             aerosol = row['aerosol']
+
             register_bands_sncosmo(sncosmo_emul, self.telescope,
                                    bandname, band,
                                    airmass, pwv, ozone, aerosol)
