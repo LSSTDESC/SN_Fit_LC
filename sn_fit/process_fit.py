@@ -301,8 +301,12 @@ class Fitting:
         """
         res = Table()
 
-        for lc in lc_list:
-            # time_ref = time.time()
+        import time
+        for io, lc in enumerate(lc_list):
+            # print('fitting', j, io, len(lc))
+            # register
+            self.register_band(lc)
+            time_ref = time.time()
             # self.register_band(lc)
             # 'fitting', lc[['band_cosmo', 'airmass', 'pwv', 'ozone', 'aerosol']])
             lc.convert_bytestring_to_unicode()
@@ -380,8 +384,10 @@ class Fitting:
 
         # time_ref = time.time()
 
+        """
         if len(lc_res) > 0:
             self.register_bands(lc_res)
+        """
         # print('registry', time.time()-time_ref)
 
         return lc_res
@@ -529,8 +535,20 @@ class Fitting:
         self.register_bands_on_the_fly(tt.to_pandas())
 
     def register_band(self, lc):
+        """
+        Method to register a lc in sncosmo
 
-        tt = Table()
+        Parameters
+        ----------
+        lc : astropy table
+            LC to register.
+
+        Returns
+        -------
+        None.
+
+        """
+
         ccols = ['band_cosmo', 'band', 'airmass',
                  'pwv', 'ozone', 'aerosol', 'filter']
 
