@@ -554,7 +554,8 @@ class Fitting:
 
         tt = lc[ccols]
 
-        tt = unique(tt)
+        if len(tt) > 1:
+            tt = unique(tt)
 
         self.register_bands_on_the_fly(tt.to_pandas())
 
