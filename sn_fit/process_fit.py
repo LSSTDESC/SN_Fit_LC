@@ -306,7 +306,7 @@ class Fitting:
             # print('fitting', j, io, len(lc))
             # register
             self.register_band(lc)
-            time_ref = time.time()
+            #time_ref = time.time()
             # self.register_band(lc)
             # 'fitting', lc[['band_cosmo', 'airmass', 'pwv', 'ozone', 'aerosol']])
             lc.convert_bytestring_to_unicode()

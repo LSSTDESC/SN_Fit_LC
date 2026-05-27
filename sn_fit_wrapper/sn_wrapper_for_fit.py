@@ -9,7 +9,7 @@ from sn_tools.sn_utils import load_config
 
 
 class FitWrapper:
-    def __init__(self, yaml_config_fit):
+    def __init__(self, config):
         """
         Class to fit a set of light curves
 
@@ -26,7 +26,7 @@ class FitWrapper:
         from sn_fit.process_fit import Fitting
 
         # Fit instance
-        config = load_config(yaml_config_fit)
+        #config = load_config(yaml_config_fit)
 
         self.fit = Fitting(config)
         self.nproc = config['MultiprocessingFit']['nproc']
@@ -67,7 +67,12 @@ class FitWrapper:
 
         """
 
-        res = self.fit.fit_multiproc(lc_list, remove_sat, self.nproc)
+        if self.nproc > 1:
+            res = self.fit.fit_multiproc(lc_list, remove_sat, self.nproc)
+        else:
+            params = {}
+            params['remove_sat'] = remove_sat
+            res = self.fit.fit_lcs(lc_list,params)
 
         return res
 
