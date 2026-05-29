@@ -358,11 +358,11 @@ class Fit_LC(Selection):
         zmin = z-self.sigmaz*(1+z)
         zmax = z+self.sigmaz*(1+z)
         bounds = {'z': (zmin, zmax),
-                  'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
+                  'x1': (-5.0, 5.0), 'c': (-0.5, 0.5)}
 
         if 'z' not in self.vparam_names:
             self.SN_fit_model.set(z=meta['zmeas'])
-            bounds = {'x1': (-3.0, 3.0), 'c': (-0.3, 0.3)}
+            bounds = {'x1': (-5.0, 5.0), 'c': (-0.5, 0.5)}
 
         # apply extinction here
         self.SN_fit_model.set(mwebv=meta['ebvofMW'])
