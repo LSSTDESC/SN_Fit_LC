@@ -49,6 +49,9 @@ class Fitting:
         fit_selected = fitter_config['fit']['selected']
         # config_inst = fitter_config['InstrumentFit']
         self.fit_coadded = fitter_config['fit']['coadded']
+        
+        #bands to usefor the fit
+        self.fit_bands = fitter_config['fit']['bands']
 
         self.fitter = module.Fit_LC(sncosmo_emul,
                                     model=fitter_config['Fitter']['model'],
@@ -350,11 +353,16 @@ class Fitting:
                   'pwv', 'ozone', 'aerosol', 'filter', 'zp']
 
         lc_res = []
+        
         for lc in lc_list:
             if len(lc) == 0:
                 continue
+            
             # SNR selection
             idx = lc['snr'] >= self.snrmin
+            #band selection
+            idx &= np.in1d(lc['filter'],list(self.fit_bands))
+            
             sel = lc[idx]
 
             """

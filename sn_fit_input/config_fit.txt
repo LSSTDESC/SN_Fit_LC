@@ -30,6 +30,7 @@ LCSelection snrmin 1. float #min SNR for LC points
 ## fit only selected LC
 fit_selected 0 int # to fit only selected LC
 fit_coadded 0 int # to fit coadded lc points
+fit_bands grizy str #bands to use for the fit
 
 ## Display
 Display 0 int #to display fit result 'on-line'
